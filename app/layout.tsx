@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
+import {Providers} from './providers';
 import BackgroundBlobs from "@/components/BackgroundBlobs";
-import Navbar from "@/components/Navbar/Navbar";
+import Navbarhead from "@/components/Navbar/Navbarhead";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,12 +32,14 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
       <div className="flex flex-col min-h-screen bg-neutral-900 relative">
-          
-          <main className="flex-grow relative z-20 overflow-hidden">
-            <Navbar/>
-            <BackgroundBlobs/>
-            {children}
-          </main>
+          {/* hero ui provider */}
+          <Providers>
+            <main className="flex-grow relative z-20 overflow-hidden">
+              
+              <Navbarhead/>
+              {children}
+            </main>
+          </Providers>
       </div>
       </body>
     </html>
