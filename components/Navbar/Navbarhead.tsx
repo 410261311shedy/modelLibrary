@@ -12,51 +12,11 @@ import {
   Avatar,
 } from "@heroui/react";
 import Link from "next/link";
-import { ThemeToggle } from "./Theme";
+import { ThemeSwitcher } from "./ThemeSwitcher";
 import Image from "next/image";
+import SearchBar from "../SearchBar/SearchBar";
+import SetLanguageButton from "../SetLanguageButton";
 
-export const AcmeLogo = () => {
-  return (
-    <svg fill="none" height="36" viewBox="0 0 32 32" width="36">
-      <path
-        clipRule="evenodd"
-        d="M17.6482 10.1305L15.8785 7.02583L7.02979 22.5499H10.5278L17.6482 10.1305ZM19.8798 14.0457L18.11 17.1983L19.394 19.4511H16.8453L15.1056 22.5499H24.7272L19.8798 14.0457Z"
-        fill="currentColor"
-        fillRule="evenodd"
-      />
-    </svg>
-  );
-};
-
-export const SearchIcon = ({size = 24, strokeWidth = 1.5, width, height, ...props}) => {
-  return (
-    <svg
-      aria-hidden="true"
-      fill="none"
-      focusable="false"
-      height={height || size}
-      role="presentation"
-      viewBox="0 0 24 24"
-      width={width || size}
-      {...props}
-    >
-      <path
-        d="M11.5 21C16.7467 21 21 16.7467 21 11.5C21 6.25329 16.7467 2 11.5 2C6.25329 2 2 6.25329 2 11.5C2 16.7467 6.25329 21 11.5 21Z"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={strokeWidth}
-      />
-      <path
-        d="M22 22L20 20"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={strokeWidth}
-      />
-    </svg>
-  );
-};
 
 export default function Navbarhead() {
   return (
@@ -71,7 +31,7 @@ export default function Navbarhead() {
       >
       <NavbarContent justify="start">
         <NavbarBrand className="mr-4">
-          <Image src="/icons/Logo.png" width={200}height={200}alt="GoMore Logo"></Image>
+          <Image src="/icons/Logo.svg" width={200}height={200}alt="GoMore Logo" className="briinvert"></Image>
           
         </NavbarBrand>
         <NavbarContent className="hidden sm:flex gap-3">
@@ -89,23 +49,11 @@ export default function Navbarhead() {
       </NavbarContent>
 
       <NavbarContent justify="center">
-        <Input
-          classNames={{
-            base: "w-full sm:max-w-[16rem] h-10",
-            mainWrapper: "h-full",
-            input: "text-small",
-            inputWrapper:
-              "h-full font-normal text-default-500 bg-default-400/20 dark:bg-default-500/20 rounded-full",
-          }}
-          placeholder="Type to search..."
-          size="sm"
-          endContent={<SearchIcon size={18}/>}
-          type="search"
-        />
+        <SearchBar/>
       </NavbarContent>
       <NavbarContent as="div" className="items-center" justify="end">
-        
-        <ThemeToggle/>
+        <SetLanguageButton/>
+        <ThemeSwitcher/>
         <Dropdown placement="bottom-end">
           <DropdownTrigger>
             <Avatar

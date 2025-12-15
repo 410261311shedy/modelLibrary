@@ -7,7 +7,7 @@ import React from 'react';
 import BackgroundBlobs from '@/components/BackgroundBlobs';
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  return (
+    return (
     <NextThemesProvider attribute="class" defaultTheme='dark'>
         <HeroUIProvider>
             <BackgroundBlobs/>
