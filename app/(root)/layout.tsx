@@ -1,8 +1,9 @@
+import Footer from '@/components/Footer';
 import React, { ReactNode } from 'react'
 
 const RootLayout = ({children}:{children:ReactNode}) => {
   return (
-    <main>
+    <main className='flex-grow'>
       {children}
     </main>
   );

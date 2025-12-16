@@ -41,7 +41,7 @@ const SearchBar = () => {
                 mainWrapper: "h-full",
                 input: `text-small ${isDark ? "text-red-500" : "text-black"}`,
                 inputWrapper:
-                "h-full font-normal text-default-500 bg-default-400/20 dark:bg-default-500/20 rounded-full",
+                "h-full font-normal text-default-500 bg-default-400/20 dark:bg-[var(--colors-layout-foreground-900,#27272A)] rounded-full",
             }}
             placeholder="Search 3D models"
             size="sm"

@@ -48,15 +48,13 @@ const RootLayout=async({children}: {children: React.ReactNode}) =>{
           disableTransitionOnChange
         >
           {/*wrapped the children between ThemeProvider to make sure the theme aplly ot all pages*/}
-        <main className="flex flex-col min-h-screen relative">
             {/* hero ui provider */}
             <Providers>
-              <div className="flex-grow relative z-20 overflow-hidden">
+              <div className="flex flex-col min-h-screen relative z-20">
                 <Navbarhead/>
                 {children}
               </div>
             </Providers>
-        </main>
         </ThemeProvider>
       </SessionProvider>
       </body>

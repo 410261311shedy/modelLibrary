@@ -20,7 +20,7 @@ export function ThemeSwitcher() {
           "rounded-full",
           // background
           !isLight
-          ? "bg-[var(--colors-layout-foreground-900,#18181B)]"
+          ? "bg-[var(--colors-layout-foreground-900,#27272A)]"
           :"",
           
         ].join(" "),

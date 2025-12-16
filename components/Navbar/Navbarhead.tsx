@@ -40,7 +40,7 @@ export default function Navbarhead() {
         isBordered
         isBlurred={false}
         classNames={{
-          base: "max-w-5xl w-full rounded-2xl shadow-sm bg-white dark:bg-neutral-900",
+          base: "max-w-5xl w-full rounded-2xl shadow-sm bg-white dark:bg-black",
           wrapper: "px-4",
         }}
       >
