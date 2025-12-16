@@ -2,23 +2,27 @@
 import Image from "next/image";
 import { useTheme } from "next-themes";
 import { Switch } from "@heroui/react";
+import React from "react";
 
 export function ThemeSwitcher() {
   const { theme, setTheme } = useTheme();
 
-  const isDark = theme === "dark";
-
+  const isLight = theme === "light";
+  console.log("Current theme:", theme);
   return (
     <Switch
-      isSelected={isDark}
-      onValueChange={(selected) => setTheme(selected ? "dark" : "light")}
+      isSelected={isLight}
+      onValueChange={(selected) => setTheme(selected ? "light" : "dark")}
       color="secondary"
       size="lg"
       classNames={{
       wrapper: [
-          // background
-          "bg-[var(--colors-layout-foreground-100,#27272A)]",
           "rounded-full",
+          // background
+          !isLight
+          ? "bg-[var(--colors-layout-foreground-900,#18181B)]"
+          :"",
+          
         ].join(" "),
         thumb: [
           "rounded-full",
@@ -28,9 +32,9 @@ export function ThemeSwitcher() {
       }}
       thumbIcon={({ isSelected }) =>
         isSelected ? (
-          <Image src="/icons/Sun 2.svg" width={16} height={16} alt="sun logo" className="invert"/>
+          <Image src="/icons/Sun 2.svg" width={16} height={16} alt="light" className="invert"/>
         ) : (
-          <Image src="/icons/Moon Stars.svg" width={16} height={16} alt="moon logo" className="invert"/>
+          <Image src="/icons/Moon Stars.svg" width={16} height={16} alt="dark" className="invert"/>
         )
       }
     >

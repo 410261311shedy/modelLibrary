@@ -1,6 +1,6 @@
 import React from 'react'
 import { Input } from '@heroui/react';
-
+import { useTheme } from 'next-themes';
 export const SearchIcon = ({size = 24, strokeWidth = 1.5, width, height, ...props}) => {
     return (
         <svg
@@ -31,17 +31,19 @@ export const SearchIcon = ({size = 24, strokeWidth = 1.5, width, height, ...prop
     );
 };
 const SearchBar = () => {
+    const { theme } = useTheme();
+    const isDark = theme === "dark";
     return (
         <>
             <Input
             classNames={{
                 base: "w-full sm:max-w-[16rem] h-10",
                 mainWrapper: "h-full",
-                input: "text-small",
+                input: `text-small ${isDark ? "text-red-500" : "text-black"}`,
                 inputWrapper:
                 "h-full font-normal text-default-500 bg-default-400/20 dark:bg-default-500/20 rounded-full",
             }}
-            placeholder="Type to search..."
+            placeholder="Search 3D models"
             size="sm"
             endContent={<SearchIcon size={18}/>}
             type="search"
@@ -50,4 +52,4 @@ const SearchBar = () => {
     )
 }
 
-export default SearchBar
+export default SearchBar;

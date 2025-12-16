@@ -4,9 +4,25 @@
 @source '../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
 @custom-variant dark (&:is(.dark *));
 
+@utility background-blobs-amber-50_darkblack {
+  @apply bg-amber-50 dark:bg-black;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
+}
+
+:root {
+  --blob-color-a: #80A4D7; /* Light theme blob A color */
+  --blob-color-b: #A42E4C; /* Light theme blob B color */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --blob-color-a: #4A6F9B; /* Dark theme blob A color */
+    --blob-color-b: #7A2238; /* Dark theme blob B color */
+  }
 }
 
 @theme inline {

@@ -16,32 +16,48 @@ import { ThemeSwitcher } from "./ThemeSwitcher";
 import Image from "next/image";
 import SearchBar from "../SearchBar/SearchBar";
 import SetLanguageButton from "../SetLanguageButton";
+import { useTheme } from "next-themes";
+import React from "react";
+import { useEffect, useState } from 'react';
 
+const getLogoSrc = (isDark: boolean) => {
+  return isDark ? "/icons/logowhite.svg" : "/icons/Logo.svg";
+};
 
 export default function Navbarhead() {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  if (!mounted) return null; // Avoid SSR issues
+  console.log("Current Navbar theme:", theme);
+
   return (
-    <div className="w-full flex justify-center mt-4 px-4 ">
-      <Navbar 
+    <nav className="w-full flex justify-center mt-4 px-4 ">
+      <Navbar
         isBordered
         isBlurred={false}
         classNames={{
-          base: "max-w-5xl w-full rounded-2xl shadow-sm",
+          base: "max-w-5xl w-full rounded-2xl shadow-sm bg-white dark:bg-neutral-900",
           wrapper: "px-4",
         }}
       >
       <NavbarContent justify="start">
         <NavbarBrand className="mr-4">
-          <Image src="/icons/Logo.svg" width={200}height={200}alt="GoMore Logo" className="briinvert"></Image>
-          
+          <Link href="/">
+            <Image src={getLogoSrc(isDark)} width={120}height={120}alt="GoMore Logo" className=""></Image>
+          </Link>
         </NavbarBrand>
         <NavbarContent className="hidden sm:flex gap-3">
           <NavbarItem>
-            <Link href="/">
+            <Link href="/" className={`${isDark ? "text-white" : "text-black"}`}>
               Home
             </Link>
           </NavbarItem>
           <NavbarItem isActive>
-            <Link aria-current="page" color="secondary" href="/up">
+            <Link href="/upload" className={`${isDark ? "text-white" : "text-black"}`}>
               Upload
             </Link>
           </NavbarItem>
@@ -84,6 +100,6 @@ export default function Navbarhead() {
         </Dropdown>
       </NavbarContent>
     </Navbar>
-    </div>
+    </nav>
   );
 }
