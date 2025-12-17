@@ -4,6 +4,7 @@ import BackgroundBlobs from "../../components/BackgroundBlobs"
 import Image from 'next/image'
 import { Link } from 'lucide-react';
 import Footer from '@/components/Footer';
+import ProjectCard from '@/components/cards/ProjectCard';
 const Home = () => {
   return (
     <div className='mt-20'>
@@ -25,8 +26,8 @@ const Home = () => {
         Animation part, using gsap React, format like vite official page
       </div>
       
-      <div className='flex flex-col items-center gap-6 mt-10'>
-        <div className='items-center'>
+      <div className='flex flex-col items-center gap-6 mt-10 '>
+        <div className='items-center '>
             Query: "Building | Products | Elements | 2D Drawing"
         </div>
           <div>
@@ -34,9 +35,12 @@ const Home = () => {
           </div>
           <div>
             <div>
-              Display area for model cards, reder 12 when first mounted
+              {/* Display area for model cards, reder 12 when first mounted */}
+              <ProjectCard/>
             </div>  
-            <button>Load More</button>
+            <div className='flex justify-center mt-4 mb-4 '>
+              <button className='font-abeezee bg-transparent text-white text-sm  border-1 px-[12px] py-[4px] rounded-lg hover:bg-gray-300 transition'>Load More</button>
+            </div>
           </div>
       </div>
       <Footer/>

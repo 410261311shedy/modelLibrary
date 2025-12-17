@@ -5,8 +5,7 @@ import Image from "next/image";
 const AuthLayout = ({ children }: { children: ReactNode }) => {
     return (
         <main
-            className="flex min-h-screen items-center 
-        justify-center bg-cover bg-center bg-no-repeat"
+            className="flex grow items-center justify-center bg-cover bg-center bg-no-repeat"
         >
             <section className="bg-gray-900 rounded-[14px] pt-8 pr-8 pb-10 pl-8 shadow-md w-[448px] sm:px-8">
                 <div className="flex flex-col items-center justify-between gap-2">
@@ -28,7 +27,7 @@ const AuthLayout = ({ children }: { children: ReactNode }) => {
                     <div className="">
                     {children}
                     {/* <SocialAuthForm /> */}
-                </div>
+                    </div>
                 </div>
                 
                 

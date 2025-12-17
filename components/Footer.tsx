@@ -16,7 +16,7 @@ const Footer = () => {
     }, []);
     if (!mounted) return null; // Avoid SSR issues
   return (
-    <div className='w-full h-20 flex flex-col justify-center items-center bg-white dark:bg-[#18181B] fixed bottom-0'>      
+    <div className='w-full h-16 flex flex-col justify-center items-center bg-white dark:bg-[#18181B] bottom-0'>      
       <Image src={getLogoSrc(isDark)} alt="GoMore Logo" width={90} height={40}/>
       <p className='font-inter mt-2 text-[5px] text-[#71717A] '>© 2025 Gomore Inc. All rights reserved</p>
     </div>

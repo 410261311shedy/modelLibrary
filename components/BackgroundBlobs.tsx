@@ -7,7 +7,7 @@ const BackgroundBlobs = () => {
 
   return (
     // 這是絕對定位圓形的父容器，確保它覆蓋整個相對定位的父元素
-    <div className="absolute inset-0 overflow-hidden pointer-events-none background-blobs-amber-50_darkblack">
+    <div className="fixed h-dvh w-full pointer-events-none background-blobs-amber-50_darkblack">
         {/* 圓形 A (左側中央 - 藍色) */}
         <div className={[// 圓形/橢圓形: 設置寬高並使用 full 圓角
           "w-[48.3rem] h-[48.3rem]", // 稍大一些

@@ -5,19 +5,19 @@ import {useRouter} from "next/navigation";
 type AuthFormType = "SIGN_IN" | "SIGN_UP";
 
 type AuthFormProps<TValues extends Record<string, string>> = {
-schema?: unknown; // 目前不使用 zod，保留 signature
-defaultValues: TValues;
-formType: AuthFormType;
-onSubmit: (values: TValues) => Promise<{success: boolean}>;
+    schema?: unknown; // 目前不使用 zod，保留 signature
+    defaultValues: TValues;
+    formType: AuthFormType;
+    onSubmit: (values: TValues) => Promise<{success: boolean}>;
 };
 
 type ErrorMap = Record<string, string | undefined>;
 
 function getLabelFromName(name: string) {
-if (name === "email") return "Email Address";
-if (name === "password") return "Password";
-// 其他欄位：首字母大寫
-return name.charAt(0).toUpperCase() + name.slice(1);
+    if (name === "email") return "Email Address";
+    if (name === "password") return "Password";
+    // 其他欄位：首字母大寫
+    return name.charAt(0).toUpperCase() + name.slice(1);
 }
 
 // 驗證邏輯依照你給的規格書實作
@@ -26,87 +26,87 @@ formType: AuthFormType,
 name: string,
 value: string
 ): string | null {
-// 共用：trim
-const v = value ?? "";
+    // 共用：trim
+    const v = value ?? "";
 
-if (formType === "SIGN_IN") {
-    if (name === "email") {
-    if (!v) return "Email is required.";
-    // 簡單 email 判斷（HeroUI 也支援 type="email" 的原生驗證）[[Input](https://www.heroui.com/docs/components/input#input)]
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(v)) {
-        return "Please provide a valid email address.";
-    }
-    }
+    if (formType === "SIGN_IN") {
+        if (name === "email") {
+        if (!v) return "Email is required.";
+        // 簡單 email 判斷（HeroUI 也支援 type="email" 的原生驗證）[[Input](https://www.heroui.com/docs/components/input#input)]
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(v)) {
+            return "Please provide a valid email address.";
+        }
+        }
 
-    if (name === "password") {
-    if (v.length < 6) {
-        return "password must be at least 6 characters.";
-    }
-    if (v.length > 100) {
-        return "password cannot exceed 100 characters.";
-    }
-    }
-}
-
-if (formType === "SIGN_UP") {
-    if (name === "username") {
-    if (v.length < 3) {
-        return "Username must be at least 3 characters long.";
-    }
-    if (v.length > 30) {
-        return "Username cannot exceed 30 characters.";
-    }
-    if (!/^[A-Za-z0-9_]+$/.test(v)) {
-        return "Username can only contain letters, numbers, and underscores.";
-    }
+        if (name === "password") {
+        if (v.length < 6) {
+            return "password must be at least 6 characters.";
+        }
+        if (v.length > 100) {
+            return "password cannot exceed 100 characters.";
+        }
+        }
     }
 
-    if (name === "name") {
-    if (!v) {
-        return "Name is required.";
-    }
-    if (v.length > 50) {
-        return "Name cannot exceed 50 characters.";
-    }
-    if (!/^[A-Za-z\s]+$/.test(v)) {
-        return "Name can only contain letters and spaces.";
-    }
+    if (formType === "SIGN_UP") {
+        if (name === "username") {
+        if (v.length < 3) {
+            return "Username must be at least 3 characters long.";
+        }
+        if (v.length > 30) {
+            return "Username cannot exceed 30 characters.";
+        }
+        if (!/^[A-Za-z0-9_]+$/.test(v)) {
+            return "Username can only contain letters, numbers, and underscores.";
+        }
+        }
+
+        if (name === "name") {
+        if (!v) {
+            return "Name is required.";
+        }
+        if (v.length > 50) {
+            return "Name cannot exceed 50 characters.";
+        }
+        if (!/^[A-Za-z\s]+$/.test(v)) {
+            return "Name can only contain letters and spaces.";
+        }
+        }
+
+        if (name === "email") {
+        if (!v) {
+            return "Email is required.";
+        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(v)) {
+            return "Please provide a valid email address.";
+        }
+        }
+
+        if (name === "password") {
+        if (v.length < 6) {
+            return "Password must be at least 6 characters long.";
+        }
+        if (v.length > 100) {
+            return "Password cannot exceed 100 characters.";
+        }
+        if (!/[A-Z]/.test(v)) {
+            return "Password must contain at least one uppercase letter.";
+        }
+        if (!/[a-z]/.test(v)) {
+            return "Password must contain at least one lowercase letter.";
+        }
+        if (!/[0-9]/.test(v)) {
+            return "Password must contain at least one number.";
+        }
+        if (!/[^A-Za-z0-9]/.test(v)) {
+            return "Password must contain at least one special character.";
+        }
+        }
     }
 
-    if (name === "email") {
-    if (!v) {
-        return "Email is required.";
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(v)) {
-        return "Please provide a valid email address.";
-    }
-    }
-
-    if (name === "password") {
-    if (v.length < 6) {
-        return "Password must be at least 6 characters long.";
-    }
-    if (v.length > 100) {
-        return "Password cannot exceed 100 characters.";
-    }
-    if (!/[A-Z]/.test(v)) {
-        return "Password must contain at least one uppercase letter.";
-    }
-    if (!/[a-z]/.test(v)) {
-        return "Password must contain at least one lowercase letter.";
-    }
-    if (!/[0-9]/.test(v)) {
-        return "Password must contain at least one number.";
-    }
-    if (!/[^A-Za-z0-9]/.test(v)) {
-        return "Password must contain at least one special character.";
-    }
-    }
-}
-
-return null;
+    return null;
 }
 
 export function AuthForm<TValues extends Record<string, string>>(
