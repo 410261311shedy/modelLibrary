@@ -1,6 +1,7 @@
 import React from "react";
 import {Form, Input, Button} from "@heroui/react";
 import {useRouter} from "next/navigation";
+import {Eye,EyeOff} from "lucide-react";
 
 type AuthFormType = "SIGN_IN" | "SIGN_UP";
 
@@ -158,7 +159,6 @@ const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
     }
 };
 
-const title = formType === "SIGN_IN" ? "Sign In" : "Sign Up";
 const submitLabel = formType === "SIGN_IN" ? "Sign In" : "Sign Up";
 const submittingLabel =
     formType === "SIGN_IN" ? "Signing In..." : "Signing Up...";
@@ -176,16 +176,20 @@ const handleSwitchClick = () => {
         router.push("/sign-in");
     }
 };
+//for password visibility toggle
+const [isVisible, setIsVisible] = React.useState(false);
+const toggleVisibility = () => {
+    setIsVisible(!isVisible);
+}
 
 return (
     <Form
-    className="w-full max-w-md space-y-6"
+    className="w-full space-y-6"
     validationBehavior="aria"
     validationErrors={errors}
     onSubmit={handleSubmit}
     >
-    <div className="space-y-4">
-        <h1 className="text-2xl font-semibold">{title}</h1>
+    <div className="space-y-4 w-full">
 
         {Object.keys(defaultValues).map((name) => {
         const value = values[name] ?? "";
@@ -196,29 +200,58 @@ return (
 
         return (
             <Input
+            fullWidth
             key={name}
             name={name}
             label={label}
-            labelPlacement="outside-top"
+            labelPlacement="inside"
             isRequired={isRequired}
-            type={name === "email" ? "email" : type}
+            type={type === "password" ? (isVisible ? "text" : "password") : (name === "email" ? "email" : "text")}
             value={value}
             onValueChange={(v) => handleChange(name, v)}
             isInvalid={!!error}
             errorMessage={error ?? undefined}
-            placeholder={label}
+            placeholder={`Enter your ${label}`}
+            classNames={{
+                inputWrapper:
+                "bg-white dark:bg-[#27272A] shadow-[0px_3px_2px_rgba(255,255,255,0.18),0px_0px_4px_rgba(255,255,255,0.24),inset_0px_3px_5px_rgba(0,0,0,0.64),inset_0px_-1px_2px_rgba(0,0,0,0.6)]",
+            }}
+            endContent={
+                name === "password" ?
+                (<button
+                type="button"
+                onClick={()=>{setIsVisible(!isVisible)}}
+                className="focus:outline-none"
+                >
+                {!isVisible ? (<EyeOff className="size={20}"/>):(<Eye className="size={20}"/>)}
+                </button>):null
+            }
             />
+
         );
         })}
 
         <Button
         type="submit"
         color="primary"
-        className="w-full"
+        className="w-full shadow-[0px_0px_5px_rgba(0,0,0,0.70),inset_0px_-4px_5px_rgba(0,0,0,0.25),inset_0px_4px_5px_rgba(255,255,255,0.2)]"
         isDisabled={isSubmitting}
         >
         {isSubmitting ? submittingLabel : submitLabel}
         </Button>
+        {/* -------OR------ */}
+        <div className="flex items-center w-full gap-4 my-4">
+            {/* 左邊的線：h-px 是高度 1px，flex-1 讓它自動佔滿空間 */}
+            <div className="h-[1px] bg-zinc-700 flex-1" />
+            
+            {/* 中間的文字 */}
+            <span className="text-zinc-500 text-xs uppercase">
+                OR
+            </span>
+            
+            {/* 右邊的線 */}
+            <div className="h-[1px] bg-zinc-700 flex-1" />
+        </div>
     </div>
 
     <div className="text-center text-sm text-default-500">

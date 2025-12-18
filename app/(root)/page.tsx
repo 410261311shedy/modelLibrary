@@ -10,14 +10,14 @@ const Home = () => {
     <div className='mt-20'>
       <div className="flex flex-col items-center gap-8">
         <Image src="/icons/GOMOREonly.svg" width={300} height={300} alt="GoMore Logo" className=""/>
-        <Image src="/Connect More, Achieve More.svg" width={500 } height={500 } alt="Slogan" className=""/>
-        <p className=' text-gray-500 text-[17px] font-almarai'>Build a 3D Model Community--Share Knowledge,Connect Partners</p>
+        <Image src="/Connect More, Achieve More.svg" width={500 } height={500 } alt="Slogan" className="invert dark:invert-0"/>
+        <p className="text-[#5B5B5B] dark:text-[#BEBEBE] text-[17px] font-almarai">Build a 3D Model Community--Share Knowledge,Connect Partners</p>
         <div className='flex gap-5  '>
           <a href="/sign-up">  
             <button className='font-inter  bg-primary text-white text-sm px-[12px] py-[5px] rounded-lg hover:bg-red-500 transition'>Get Started</button>
           </a>
           <a href="/explore">
-            <button className='font-inter bg-transparent text-white text-sm  border-1 px-[12px] py-[4px] rounded-lg hover:bg-gray-300 transition'>Explore</button>
+            <button className='font-inter font-semibold bg-transparent text-[#3C3C3C] dark:text-white text-sm  border-1.5 px-[12px] py-[4px] rounded-lg hover:bg-gray-300 transition'>Explore</button>
           </a>
         </div>
       </div>
@@ -39,7 +39,9 @@ const Home = () => {
               <ProjectCard/>
             </div>  
             <div className='flex justify-center mt-4 mb-4 '>
-              <button className='font-abeezee bg-transparent text-white text-sm  border-1 px-[12px] py-[4px] rounded-lg hover:bg-gray-300 transition'>Load More</button>
+              <button className='font-abeezee bg-transparent text-[#3C3C3C] dark:text-white border-1.5 px-[12px] py-[4px] rounded-lg hover:bg-gray-300 transition'>
+                Load More
+              </button>
             </div>
           </div>
       </div>

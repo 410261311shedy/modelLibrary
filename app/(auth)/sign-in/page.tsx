@@ -3,6 +3,7 @@ import React from 'react';
 import { AuthForm } from '@/components/forms/AuthForms';
 const SignIn = () => {
   return (
+    
       <AuthForm 
         formType='SIGN_IN'
         defaultValues={{email: '', password: ''}}
