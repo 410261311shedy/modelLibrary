@@ -19,7 +19,7 @@ import SetLanguageButton from "../SetLanguageButton";
 import { useTheme } from "next-themes";
 import React from "react";
 import { useEffect, useState } from 'react';
-
+import { itemsQueryForALL } from "@/app/globalUse";
 const getLogoSrc = (isDark: boolean) => {
   return isDark ? "/icons/logowhite.svg" : "/icons/Logo.svg";
 };
@@ -52,12 +52,12 @@ export default function Navbarhead() {
         </NavbarBrand>
         <NavbarContent className="hidden sm:flex gap-3">
           <NavbarItem>
-            <Link href="/" className={`${isDark ? "text-white" : "text-black"}`}>
+            <Link href="/" className={`font-inter ${isDark ? "text-white" : "text-black"}`}>
               Home
             </Link>
           </NavbarItem>
           <NavbarItem isActive>
-            <Link href="/upload" className={`${isDark ? "text-white" : "text-black"}`}>
+            <Link href="/upload" className={`font-inter ${isDark ? "text-white" : "text-black"}`}>
               Upload
             </Link>
           </NavbarItem>

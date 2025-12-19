@@ -13,7 +13,26 @@ html, body {
 @utility background-blobs-amber-50_darkblack {
   @apply bg-amber-50 dark:bg-black;
 }
+/* --- 新增這段 --- */
+@layer utilities {
+  /* 定義一個名為 .hover-lift 的類別 */
+  .hover-lift {
+    @apply transition-transform duration-300 ease-out; 
+    /* 建議加入 will-change 屬性優化效能，告訴瀏覽器這個元素會變形 */
+    will-change: transform; 
+  }
 
+  .hover-lift:hover {
+    /* 對應 -translate-y-0.5 (即上浮 2px) */
+    @apply -translate-y-0.5;
+  }
+
+  .hover-lift:active {
+    /* 點擊時回到原位並稍微縮小，增加按壓感 */
+    @apply translate-y-0 scale-95;
+  }
+}
+  
 :root {
   --background: #ffffff;
   --foreground: #171717;

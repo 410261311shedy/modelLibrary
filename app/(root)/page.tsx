@@ -1,12 +1,20 @@
 //landing page
 'use client';
 import React from 'react'
-import BackgroundBlobs from "../../components/BackgroundBlobs"
 import Image from 'next/image'
 import {Building, Boxes,Box,FileBox} from 'lucide-react';
 import Footer from '@/components/Footer';
-import ProjectCard from '@/components/cards/ProjectCard';
+import ModelCard from '@/components/cards/ModelCard';
+import HeroAnimation from '@/components/animation/HeroAnimation';
+import { itemsQuery } from '../globalUse';
+
 const Home = () => {
+
+  //for itemsQuery
+  const [isSelectId,setIsSelectId] = React.useState('Building');
+  //for Newest Hottest Query
+  const [isQueryArrange,setIsQueryArrange] = React.useState('Newest')
+
   return (
     <div className='mt-20'>
       <div className="flex flex-col items-center gap-8">
@@ -15,63 +23,79 @@ const Home = () => {
         <p className="text-[#5B5B5B] dark:text-[#BEBEBE] text-[17px] font-almarai">Build a 3D Model Community--Share Knowledge,Connect Partners</p>
         <div className='flex gap-5  '>
           <a href="/sign-up">  
-            <button className='font-inter  bg-primary text-white text-sm px-4 py-2 rounded-lg hover:bg-red-500 transition'>Get Started</button>
+            <button className='hover-lift hover:cursor-pointer relative shadow-[inset_0_1px_2px_#ffffffbf] font-inter font-semibold text-white text-sm px-4 py-2 rounded-lg'
+            style={{
+              background: `
+                radial-gradient(141.42% 141.42% at 100% 0%, #fff6, #fff0),
+                radial-gradient(140.35% 140.35% at 100% 94.74%, #4A6F9B, #fffbeb00),
+                radial-gradient(89.94% 89.94% at 18.42% 15.79%, #7A2238, #41d1ff00)
+              `
+              }}
+              >Get Started
+            </button>
           </a>
           <a href="/explore">
-            <button className='font-inter font-semibold bg-transparent text-[#3C3C3C] dark:text-white text-sm  border-1.5 px-4 py-[7px] rounded-lg hover:bg-gray-300 transition'>Explore</button>
+            <button className='hover-lift hover:cursor-pointer font-inter font-semibold bg-transparent text-[#3C3C3C] dark:text-white text-sm  border-1.5 px-4 py-[7px] rounded-lg hover:bg-gray-300'>
+                Explore
+            </button>
           </a>
         </div>
       </div>
 
-      <div className='flex flex-col items-center mt-15'>
-        Animation part, using gsap React, format like vite official page
+      {/* 2. 替換掉原本的文字 div */}
+      {/* 調整 mt 來控制與上方的距離，w-full 確保寬度 */}
+      <div className='flex flex-col items-center mt-10 w-full overflow-hidden'>
+          <HeroAnimation/>
       </div>
       
-      <div className='flex flex-col items-center gap-6 mt-10 '>
-        <div className='px-5 flex justify-between gap-5 items-center border-2 w-full border-red-500'>
-          {/*text-transparent bg-gradient-to-r from-primary-400 to-secondary-400 */}
-          <button onClick={() => {}} className='flex flex-col justify-center items-center gap-2 border-1 border-[#B8B8B8] rounded-[8px] h-[120px] w-[200px] hover:cursor-pointer font-abeezee text-sm text-[#B8B8B8]'>
-              <Building 
-                height={40}
-                width={40}
-                className=''
-                />
-              <p>Buildings</p>
-          </button>
-          <button onClick={() => {}} className='flex flex-col justify-center items-center gap-2 border-1 border-[#B8B8B8] rounded-[8px] h-[120px] w-[200px] hover:cursor-pointer font-abeezee text-sm text-[#B8B8B8]'>
-              <Boxes 
-                height={40}
-                width={40}
-                className=''
-                />
-              <p>Products</p>
-          </button>
-          <button onClick={() => {}} className='flex flex-col justify-center items-center gap-2 border-1 border-[#B8B8B8] rounded-[8px] h-[120px] w-[200px] hover:cursor-pointer font-abeezee text-sm text-[#B8B8B8]'>
-              <Box
-                height={40}
-                width={40}
-                className=''
-                />
-              <p>Elements</p>
-          </button>
-          <button onClick={() => {}} className='flex flex-col justify-center items-center gap-2 border-1 border-[#B8B8B8] rounded-[8px] h-[120px] w-[200px] hover:cursor-pointer font-abeezee text-sm text-[#B8B8B8]'>
-              <FileBox 
-                height={40}
-                width={40}
-                className=''
-                />
-              <p>2D Drawings</p>
-          </button>
+      <div className='mx-auto flex flex-col items-center gap-6 mt-10 border-4 border-red-500 w-[90%]'>
+        <div className=' flex gap-10 items-center w-[95%] border-3 h-35'>
+          {/* buttons query */}
+          {itemsQuery.map((item) => {
+            const isSelected = isSelectId === item.id;
+
+            return (
+              <button 
+                //declare this is a unique button
+                key={item.id}
+                onClick={()=>{setIsSelectId(item.id)}}//click and update selected button Id
+                className={`relative transition-all bg-black/20 flex flex-col justify-center items-center gap-2 rounded-[8px] h-full w-[20%] hover:cursor-pointer hover-lift font-abeezee text-sm text-[#B8B8B8]
+                  ${isSelected ? "p-[1px] bg-gradient-to-r from-pink-500 to-purple-500":"border-1 border-[#B8B8B8]"}
+                  `}     
+                >
+                  {/* 2. 新增子層 (遮罩)：負責內容排版、顯示深色背景來「吃掉」中間的漸層 */}
+                  <div className={`
+                    w-full h-full rounded-[7px] flex flex-col justify-center items-center gap-2
+                    ${isSelected ? "bg-gray-700" : ""} // 關鍵！選中時要用實心深色背景蓋住漸層 (請換成您背景的深色代碼)
+                  `}>
+                      <item.icon
+                      height={30}
+                      width={30}
+                      className=''
+                        />
+                      <p>{item.label}</p>
+                    </div>
+                </button>
+                
+            )
+          })}
+          
         </div>
-          <div>
-            Query: "Newest | Hottest"
+        {/* Newest Hottest query buttoms */}
+          <div className='flex justify-start border-4 w-[95%]'>
+            <div className='flex px-[8px] py-[8px] gap-[16px] h-[60px] rounded-lg border-1.5 '>
+              <button key="Newest" onClick={()=>{setIsQueryArrange("Newest")}} 
+                className={`px-[16px] py-[8px] rounded-lg text-sm hover:cursor-pointer ${isQueryArrange === "Newest" ? "bg-primary":""}`}><p>Newest</p></button>
+              <button key="Hottest" onClick={()=>{setIsQueryArrange("Hottest")}} 
+                className={`px-[16px] py-[8px] rounded-lg text-sm hover:cursor-pointer ${isQueryArrange === "Hottest" ? "bg-primary":""}`}>Hottest</button>
+            </div>
           </div>
-          <div>
-            <div className='flex gap-3'>
+          <div className='overflow-hidden w-[95%] border-3 border-green-500'>
+            <div className='flex gap-3 border-3 border-yellow-500'>
               {/* Display area for model cards, reder 12 when first mounted */}
-              <ProjectCard/>
-              <ProjectCard/>
-              <ProjectCard/>
+              <ModelCard/>
+              <ModelCard/>
+              <ModelCard/>
             </div>  
             <div className='flex justify-center mt-4 mb-4 '>
               <button className='font-abeezee bg-transparent text-[#3C3C3C] dark:text-white border-1.5 px-[12px] py-[4px] rounded-lg hover:bg-gray-300 transition'>

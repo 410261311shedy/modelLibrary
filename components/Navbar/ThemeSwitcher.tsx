@@ -17,7 +17,7 @@ export function ThemeSwitcher() {
       size="lg"
       classNames={{
       wrapper: [
-          "rounded-full",
+          "rounded-full shadow-[inset_0px_3px_5px_1px_#000000A3,inset_0px_-1px_2px_0px_#00000099,0px_3px_1.8px_0px_#FFFFFF29,0px_-2px_1.9px_0px_#00000040,0px_0px_4px_0px_#FBFBFB3D]",
           // background
           !isLight
           ? "bg-[var(--colors-layout-foreground-900,#27272A)]"
