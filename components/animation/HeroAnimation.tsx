@@ -1,5 +1,5 @@
 "use client";
-
+import Image from "next/image";
 import React, { useRef, useLayoutEffect, useMemo } from "react";
 import gsap from "gsap";
 import { MotionPathPlugin } from "gsap/dist/MotionPathPlugin";
@@ -152,15 +152,15 @@ useLayoutEffect(() => {
 // --------------------------------------------------------
 const generateLeftPath = (index: number, total: number) => {
     const startX = 0;   // 畫面最左側
-    const endX = 400;   // 接觸晶片的位置
+    const endX = 500;   // 接觸晶片的位置
     const endY = 322;   // 晶片中心 Y
     
     // 計算起始 Y (垂直分佈)
-    const step = 400 / (total - 1);
+    const step = 350 / (total - 1);
     const startY = 122 + (index * step);
 
     // 控制點 (貝茲曲線)
-    const cp1X = 200; 
+    const cp1X = 500; 
     const cp1Y = startY; 
     const cp2X = 300; 
     const cp2Y = endY;
@@ -241,7 +241,9 @@ return (
         {/* 內部流光動畫 */}
         <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-purple-500/20 to-transparent animate-pulse"></div>
         {/* Logo / Icon */}
-        <div className="text-3xl z-10 filter drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]">⚡</div>
+        <div className="text-3xl z-10 filter drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]">
+            <Image src="/icons/LogoSignIn.svg" width={50} height={20} alt="Gomore logo"/>
+        </div>
         </div>
     </div>
 

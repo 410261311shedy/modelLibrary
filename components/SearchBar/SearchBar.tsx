@@ -1,19 +1,18 @@
 import React from 'react'
 import { Input,Dropdown,DropdownTrigger,DropdownMenu,DropdownItem,Button,Popover, PopoverTrigger, PopoverContent } from '@heroui/react';
 import { useTheme } from 'next-themes';
-import { Search,ChevronDown } from 'lucide-react';
+import { Search,ChevronDown ,ChevronUp} from 'lucide-react';
 
-const SearchBar = () => {
+//定義 Props，讓父組件傳入控制函式
+interface SearchBarProps {
+    isMenuOpen:boolean;
+    onToggle:()=>void;
+}
+// 接收 props
+const SearchBar = ({isMenuOpen,onToggle}:SearchBarProps) => {
     const { theme } = useTheme();
     const isDark = theme === "dark";
-    const categories = [
-    { title: "Building", icon: "🏢", items: ["List item", "List item", "List item"] },
-    { title: "Product", icon: "📦", items: ["List item", "List item", "List item"] },
-    { title: "Element", icon: "🧊", items: ["List item", "List item", "List item"] },
-    { title: "2D Drawing", icon: "📄", items: ["List item", "List item", "List item"] },
-    { title: "Team", icon: "👥", items: ["List item", "List item", "List item"] },
-    ];
-
+    
     return (
         <>
             <Input
@@ -26,39 +25,15 @@ const SearchBar = () => {
                 }}
                 placeholder="Search 3D models"
                 size="sm"
-                
+                // <button className='hover-lift flex ml-[3px] pl-[17px] py-[7px] items-center rounded-l-full bg-[#D4D4D8] dark:bg-[#3F3F46] shadow-[0px_0px_2px_0px_#000000B2,inset_0px_-4px_4px_0px_#00000040,inset_0px_4px_2px_0px_#FFFFFF33] w-[90px]'><p className='font-inter text-[12px]'>ALL</p><ChevronDown size={20}/></button>
                 startContent={
-                    <Popover placement="bottom-start" offset={10}>
-                        <PopoverTrigger>
-                            {/* 這對應到你 Search Bar 左側的 All 按鈕 */}
-                            <button className='hover-lift flex ml-[3px] pl-[17px] py-[7px] items-center rounded-l-full bg-[#D4D4D8] dark:bg-[#3F3F46] shadow-[0px_0px_2px_0px_#000000B2,inset_0px_-4px_4px_0px_#00000040,inset_0px_4px_2px_0px_#FFFFFF33] w-[90px]'><p className='font-inter text-[12px]'>ALL</p><ChevronDown size={20}/></button>
-                        </PopoverTrigger>
-                        
-                        {/* 這裡是彈出的內容面板 */}
-                        <PopoverContent className="w-[800px] p-0 bg-[#18181B] border border-white/10 shadow-2xl overflow-hidden">
-                            <div className="grid grid-cols-5 w-full">
-                            {categories.map((cat, index) => (
-                                <div key={index} className="flex flex-col">
-                                {/* 分類標題按鈕區 */}
-                                <div className="flex flex-col items-center justify-center p-4 gap-2 bg-white/5 border-b border-r border-white/5">
-                                    <span className="text-xl">{cat.icon}</span>
-                                    <span className="text-xs font-medium text-white">{cat.title}</span>
-                                </div>
-                                
-                                {/* 下方清單項目 */}
-                                <ul className="flex flex-col p-4 gap-3 border-r border-white/5 last:border-r-0">
-                                    {cat.items.map((item, i) => (
-                                    <li key={i} className="text-sm text-zinc-400 hover:text-white cursor-pointer transition-colors">
-                                        {item}
-                                    </li>
-                                    ))}
-                                </ul>
-                                </div>
-                            ))}
-                            </div>
-                        </PopoverContent>
-                    </Popover>
-                }
+                    // 用純 Button 觸發 onToggle
+                    <button type='button' onClick={onToggle} className={`hover-lift flex ml-[3px] pl-[17px] py-[7px] items-center rounded-l-full bg-[#D4D4D8] dark:bg-[#3F3F46] shadow-[0px_0px_2px_0px_#000000B2,inset_0px_-4px_4px_0px_#00000040,inset_0px_4px_2px_0px_#FFFFFF33] w-[90px] 
+                        ${isMenuOpen ? "bg-red-600 text-white" : "bg-[#D4D4D8] dark:bg-[#3F3F46]"}`}>
+                        <p className='font-inter text-[12px]'>ALL</p>
+                        {isMenuOpen ? <ChevronUp size={20}/>:<ChevronDown size={20}/>}
+                    </button>
+                } 
                 endContent={
                     <button
                         type="button"

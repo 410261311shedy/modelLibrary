@@ -55,7 +55,7 @@ const RootLayout=async({children}: {children: React.ReactNode}) =>{
           {/*wrapped the children between ThemeProvider to make sure the theme aplly ot all pages*/}
             {/* hero ui provider */}
             <Providers>
-              <div className="flex flex-col min-h-screen relative z-20">
+              <div className="flex flex-col justify-items-center min-h-screen relative z-20 border-3 border-blue-400">
                 <Navbarhead/>
                 {children}
               </div>

@@ -2,7 +2,6 @@
 'use client';
 import React from 'react'
 import Image from 'next/image'
-import {Building, Boxes,Box,FileBox} from 'lucide-react';
 import Footer from '@/components/Footer';
 import ModelCard from '@/components/cards/ModelCard';
 import HeroAnimation from '@/components/animation/HeroAnimation';
@@ -11,7 +10,7 @@ import { itemsQuery } from '../globalUse';
 const Home = () => {
 
   //for itemsQuery
-  const [isSelectId,setIsSelectId] = React.useState('Building');
+  const [isSelectId,setIsSelectId] = React.useState('ALL');
   //for Newest Hottest Query
   const [isQueryArrange,setIsQueryArrange] = React.useState('Newest')
 
@@ -32,11 +31,6 @@ const Home = () => {
               `
               }}
               >Get Started
-            </button>
-          </a>
-          <a href="/explore">
-            <button className='hover-lift hover:cursor-pointer font-inter font-semibold bg-transparent text-[#3C3C3C] dark:text-white text-sm  border-1.5 px-4 py-[7px] rounded-lg hover:bg-gray-300'>
-                Explore
             </button>
           </a>
         </div>
@@ -85,17 +79,16 @@ const Home = () => {
           <div className='flex justify-start border-4 w-[95%]'>
             <div className='flex px-[8px] py-[8px] gap-[16px] h-[60px] rounded-lg border-1.5 '>
               <button key="Newest" onClick={()=>{setIsQueryArrange("Newest")}} 
-                className={`px-[16px] py-[8px] rounded-lg text-sm hover:cursor-pointer ${isQueryArrange === "Newest" ? "bg-primary":""}`}><p>Newest</p></button>
+                className={`hover-lift px-[16px] py-[8px] rounded-lg text-sm hover:cursor-pointer ${isQueryArrange === "Newest" ? "bg-primary":""}`}><p>Newest</p></button>
               <button key="Hottest" onClick={()=>{setIsQueryArrange("Hottest")}} 
-                className={`px-[16px] py-[8px] rounded-lg text-sm hover:cursor-pointer ${isQueryArrange === "Hottest" ? "bg-primary":""}`}>Hottest</button>
+                className={`hover-lift px-[16px] py-[8px] rounded-lg text-sm hover:cursor-pointer ${isQueryArrange === "Hottest" ? "bg-primary":""}`}>Hottest</button>
             </div>
           </div>
           <div className='overflow-hidden w-[95%] border-3 border-green-500'>
-            <div className='flex gap-3 border-3 border-yellow-500'>
+            {/* 分割容器成3等份 */}
+            <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 justify-items-center border-3 border-yellow-500'>
               {/* Display area for model cards, reder 12 when first mounted */}
-              <ModelCard/>
-              <ModelCard/>
-              <ModelCard/>
+              <ModelCard selectedCategory={isSelectId}/>
             </div>  
             <div className='flex justify-center mt-4 mb-4 '>
               <button className='font-abeezee bg-transparent text-[#3C3C3C] dark:text-white border-1.5 px-[12px] py-[4px] rounded-lg hover:bg-gray-300 transition'>
