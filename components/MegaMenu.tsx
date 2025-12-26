@@ -1,32 +1,41 @@
 import React from 'react'
 import { card,itemsQueryForALL } from '@/app/globalUse'
-import { filter } from 'framer-motion/client';
 
 const MegaMenu = () => {
 const [selectedCategory,setSelectedCategory] = React.useState("ALL");
 
-const filteredCard = card.filter((item)=>item.category === selectedCategory)
+const filteredCard = selectedCategory === "ALL"
+    ? card
+    : card.filter((item)=> item.category === selectedCategory)
 
 return (
     // 這裡設計延伸區塊的樣式
-    <div className="w-full max-w-5xl mx-auto mt-1 p-6 rounded-b-2xl bg-white dark:bg-black borde shadow-2xl z-40">
-    <div className="grid grid-cols-5 w-full gap-4">
-        {itemsQueryForALL.map((cat, index) => (
-        <div key={index} className="flex flex-col">
-            <div className="flex flex-col items-center justify-center p-4 gap-2 bg-white/5 border-b border-r border-white/5 rounded-t-lg">
-            <span className="text-xl"><cat.icon size={20}/></span>
-            <span className="text-xs font-medium text-white">{cat.label}</span>
-            </div>
-            <ul className="flex flex-col p-4 gap-3 border-r border-b border-l border-white/5 rounded-b-lg last:border-r">
-            {filteredCard.map((item, i) => (
-                <li key={i} className="text-sm text-zinc-400 hover:text-white cursor-pointer transition-colors text-center">
-                {item.title}
-                </li>
-            ))}
+    <div className="w-full p-6">
+        <div className="p-[2.5px] h-[50px] grid grid-cols-6 w-full h-15 gap-4 rounded-lg bg-[#80A4D7]/20 dark:bg-[#27272A] ">
+            {itemsQueryForALL.map((cat,index) => {
+                const isSelected = selectedCategory === cat.id;
+                return(
+                <button
+                    key={index}
+                    onClick={()=>{setSelectedCategory(cat.id)}}
+                    className={`h-[45px] flex justify-center items-center gap-2 rounded-lg text-black dark:text-[#B8B8B8] hover:cursor-pointer hover-lift
+                    ${isSelected ? "bg-primary/80 dark:bg-[#505057] shadow-[0px_1px_2px_0px_#0000000D]":""}
+                        `}
+                >
+                    <cat.icon size={20} color='#a4a4b2' className='invert dark:invert-0'/>
+                    <p className='font-inter text-[10px] hidden sm:inline'>{cat.label}</p>
+                </button>);
+            })}
+        </div>
+        <div>
+            <ul className="grid grid-cols-4 sm:grid-cols-6 p-4 gap-3">
+                {filteredCard.map((item, i) => (
+                    <li key={i} className="text-sm text-zinc-400 hover:text-white cursor-pointer transition-colors text-center">
+                    {item.title}
+                    </li>
+                ))}
             </ul>
         </div>
-        ))}
-    </div>
     </div>
 );
 }

@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import { AuthForm } from '@/components/forms/AuthForms';
+import { success } from 'zod';
 
 const SignUp = () => {
   return (
@@ -13,12 +14,9 @@ const SignUp = () => {
           email: "",
           password: "",
         }}
-        onSubmit={async (values) => {
-          // 這裡接你的註冊 API
-          console.log("sign up values", values);
-
-          return {success: true};
-        }}
+        onSubmit={
+          (data) => Promise.resolve({success:true,data})
+        }
       />
     
   )

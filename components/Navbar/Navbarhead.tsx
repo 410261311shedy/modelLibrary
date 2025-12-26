@@ -9,7 +9,7 @@ import {
   Dropdown,
   DropdownMenu,
   Avatar,
-  Button
+  Button,
 } from "@heroui/react";
 import Link from "next/link";
 import Image from "next/image";
@@ -22,11 +22,13 @@ import React from "react";
 import { useEffect, useState } from 'react';
 import MegaMenu from "../MegaMenu";
 
+
 const getLogoSrc = (isDark: boolean) => {
   return isDark ? "/icons/logowhite.svg" : "/icons/Logo.svg";
 };
 
 export default function Navbarhead() {
+
   const { theme } = useTheme();
   const isDark = theme === "dark";
   const [mounted, setMounted] = useState(false);
@@ -40,75 +42,102 @@ export default function Navbarhead() {
   console.log("Current Navbar theme:", theme);
 
   return (
-    <nav className="w-full flex justify-center mt-4 px-4 border-3 ">
-      <Navbar
-        isBordered
+    <nav className="w-full flex justify-center px-4 mt-4">
+
+      {/* 這是新的外層容器，負責畫邊框 */}
+      <div className={`
+      w-full max-w-5xl 
+      bg-white dark:bg-black 
+      rounded-2xl 
+      transition-all duration-300
+      flex flex-col
+      overflow-hidden
+      shadow-[inset_0px_-2px_4px_0px_#00000040,inset_0px_2px_1px_1px_#FFFFFF26,0px_2px_30px_0px_#00000038,0px_0px_15px_0px_#0000000F]
+      `}>
+
+        <Navbar
+        isBordered={false}
         isBlurred={false}
-        classNames={{
-          base: "max-w-5xl w-full rounded-2xl shadow-sm bg-white dark:bg-black border-3 border-red-500",
-          wrapper: "px-4",
+        className="bg-transparent"
+        classNames={{ 
+          wrapper:"px-4"
         }}
       >
-      <NavbarContent justify="start">
-        <NavbarBrand className="mr-4">
-          <Link href="/">
-            <Image src={getLogoSrc(isDark)} width={120}height={120}alt="GoMore Logo"></Image>
-          </Link>
-        </NavbarBrand>
-        <NavbarContent className="hidden sm:flex gap-3">
-          <NavbarItem>
-            <Button as={Link} href="/" radius="none" disableRipple className={`hover-lift font-inter text-[16px] w-[80px] ${isDark ? "text-white bg-black" : "text-black bg-white"} ${(pathName === "/")?"border-b-2 border-b-red-600":"" }`}>Home</Button>
-          </NavbarItem>
-          <NavbarItem isActive>
-            <Button as={Link} href="/upload" radius="none" disableRipple className={`hover-lift font-inter text-[16px] w-[80px] ${isDark ? "text-white bg-black" : "text-black bg-white"} ${(pathName === "/upload")?"border-b-2 border-b-red-600":"" }`}>Upload</Button>
-          </NavbarItem>
-        </NavbarContent>
-      </NavbarContent>
+          <NavbarContent justify="start">
+            <NavbarBrand className="mr-4">
+              <Link href="/">
+                <Image src={getLogoSrc(isDark)} width={120}height={120}alt="GoMore Logo"></Image>
+              </Link>
+            </NavbarBrand>
+            <NavbarContent className="hidden sm:flex gap-3">
+              <NavbarItem>
+                <Button as={Link} href="/" radius="none" disableRipple className={`hover-lift font-inter text-[16px] w-[80px] ${isDark ? "text-white bg-black" : "text-black bg-white"} ${(pathName === "/")?"border-b-2 border-b-red-600":"" }`}>Home</Button>
+              </NavbarItem>
+              <NavbarItem isActive>
+                <Button as={Link} href="/upload" radius="none" disableRipple className={`hover-lift font-inter text-[16px] w-[80px] ${isDark ? "text-white bg-black" : "text-black bg-white"} ${(pathName === "/upload")?"border-b-2 border-b-red-600":"" }`}>Upload</Button>
+              </NavbarItem>
+            </NavbarContent>
+          </NavbarContent>
 
-      <NavbarContent justify="center">
-        {/* Search box 區塊 */}
-        <SearchBar isMenuOpen={isMegaMenuOpen} onToggle={()=>setIsMegaMenuOpen(!isMegaMenuOpen)}/>
-        {/* 3. 根據狀態顯示延伸區塊 (Mega Menu) */}
-          {isMegaMenuOpen && (
-          <div className="w-full flex justify-center absolute top-[50px]"> {/* absolute 定位確保它疊在頁面內容之上 */}
+          <NavbarContent justify="center">
+            {/* Search box 區塊 */}
+            <SearchBar isMenuOpen={isMegaMenuOpen} onToggle={()=>setIsMegaMenuOpen(!isMegaMenuOpen)}/>
+              
+          </NavbarContent>
+          <NavbarContent as="div" className="items-center" justify="end">
+            <SetLanguageButton/>
+            <ThemeSwitcher/>
+            <Button 
+              variant="solid" 
+              color="primary"
+              size="md"
+              radius="md"
+              className="shadow-[0px_0px_2px_0px_#000000B2,inset_0px_4px_-4px_0px_#00000040,inset_0px_4px_2px_0px_#FFFFFF33]"
+            >Login</Button>
+            {/* <Dropdown placement="bottom-end">
+              <DropdownTrigger>
+                <Avatar
+                  isBordered
+                  as="button"
+                  className="transition-transform"
+                  color="secondary"
+                  name="Jason Hughes"
+                  size="sm"
+                  src="https://i.pravatar.cc/150?u=a042581f4e29026704d"
+                />
+              </DropdownTrigger>
+              <DropdownMenu aria-label="Profile Actions" variant="flat">
+                <DropdownItem key="profile" className="h-14 gap-2">
+                  <p className="font-semibold">Signed in as</p>
+                  <p className="font-semibold">zoey@example.com</p>
+                </DropdownItem>
+                <DropdownItem key="settings">My Settings</DropdownItem>
+                <DropdownItem key="team_settings">Team Settings</DropdownItem>
+                <DropdownItem key="analytics">Analytics</DropdownItem>
+                <DropdownItem key="system">System</DropdownItem>
+                <DropdownItem key="configurations">Configurations</DropdownItem>
+                <DropdownItem key="help_and_feedback">Help & Feedback</DropdownItem>
+                <DropdownItem key="logout" color="danger">
+                  Log Out
+                </DropdownItem>
+              </DropdownMenu>
+            </Dropdown> */}
+          </NavbarContent>
+        </Navbar>
+        {/* MegaMenu 區塊，直接放在 Navbar 下方 */}
+        {/* 使用 CSS class 控制顯示/隱藏，而不是條件渲染 */}
+        <div className={`
+            w-full 
+            transition-all duration-300 ease-in-out justify-items-center
+            ${isMegaMenuOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}
+            `}>
+            {/* 分隔線 */}
+            <div className="mt-4 h-[1px] bg-gray-700/50 w-[95%]" />
+          
+            {/* MegaMenu 內容 */}
             <MegaMenu />
-          </div>
-          )}
-      </NavbarContent>
-      <NavbarContent as="div" className="items-center" justify="end">
-        <SetLanguageButton/>
-        <ThemeSwitcher/>
-        <Dropdown placement="bottom-end">
-          <DropdownTrigger>
-            <Avatar
-              isBordered
-              as="button"
-              className="transition-transform"
-              color="secondary"
-              name="Jason Hughes"
-              size="sm"
-              src="https://i.pravatar.cc/150?u=a042581f4e29026704d"
-            />
-          </DropdownTrigger>
-          <DropdownMenu aria-label="Profile Actions" variant="flat">
-            <DropdownItem key="profile" className="h-14 gap-2">
-              <p className="font-semibold">Signed in as</p>
-              <p className="font-semibold">zoey@example.com</p>
-            </DropdownItem>
-            <DropdownItem key="settings">My Settings</DropdownItem>
-            <DropdownItem key="team_settings">Team Settings</DropdownItem>
-            <DropdownItem key="analytics">Analytics</DropdownItem>
-            <DropdownItem key="system">System</DropdownItem>
-            <DropdownItem key="configurations">Configurations</DropdownItem>
-            <DropdownItem key="help_and_feedback">Help & Feedback</DropdownItem>
-            <DropdownItem key="logout" color="danger">
-              Log Out
-            </DropdownItem>
-          </DropdownMenu>
-        </Dropdown>
-      </NavbarContent>
-      
-    </Navbar>
+        </div>
+      </div>
     </nav>
   );
 }

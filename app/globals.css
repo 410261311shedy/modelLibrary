@@ -32,7 +32,17 @@ html, body {
     @apply translate-y-0 scale-95;
   }
 }
-  
+@layer utilities {
+  .active-press {
+    @apply transition-transform duration-300 ease-out;
+    will-change: transform;
+  }
+  /* 2. 點擊按壓縮小效果 (獨立出來) */
+  .active-press:active {
+    @apply translate-y-0 scale-90;
+  }
+}
+  transition-transform duration-300 ease-out translate-y-0 scale-95
 :root {
   --background: #ffffff;
   --foreground: #171717;

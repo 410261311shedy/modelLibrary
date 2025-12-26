@@ -31,14 +31,12 @@ value: string
     const v = value ?? "";
 
     if (formType === "SIGN_IN") {
-        if (name === "email") {
-        if (!v) return "Email is required.";
-        // 簡單 email 判斷（HeroUI 也支援 type="email" 的原生驗證）[[Input](https://www.heroui.com/docs/components/input#input)]
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(v)) {
-            return "Please provide a valid email address.";
-        }
-        }
+        if (name === "username") {
+            if (!v) return "Username is required.";
+      // 登入時通常不需要像註冊那樣檢查長度或正則表達式，只要有填寫即可
+      // 如果你需要更嚴格的檢查，可以把 SIGN_UP 的邏輯搬過來
+            }
+        
 
         if (name === "password") {
         if (v.length < 6) {
@@ -184,7 +182,7 @@ const toggleVisibility = () => {
 
 return (
     <Form
-    className="w-full space-y-6"
+    className="w-full space-y-3"
     validationBehavior="aria"
     validationErrors={errors}
     onSubmit={handleSubmit}
@@ -234,27 +232,15 @@ return (
         <Button
         type="submit"
         color="primary"
-        className="w-full shadow-[0px_0px_5px_rgba(0,0,0,0.70),inset_0px_-4px_5px_rgba(0,0,0,0.25),inset_0px_4px_5px_rgba(255,255,255,0.2)]"
+        className="font-inter w-full shadow-[0px_0px_5px_rgba(0,0,0,0.70),inset_0px_-4px_5px_rgba(0,0,0,0.25),inset_0px_4px_5px_rgba(255,255,255,0.2)]"
         isDisabled={isSubmitting}
         >
         {isSubmitting ? submittingLabel : submitLabel}
         </Button>
-        {/* -------OR------ */}
-        <div className="flex items-center w-full gap-4 my-4">
-            {/* 左邊的線：h-px 是高度 1px，flex-1 讓它自動佔滿空間 */}
-            <div className="h-[1px] bg-zinc-700 flex-1" />
-            
-            {/* 中間的文字 */}
-            <span className="text-zinc-500 text-xs uppercase">
-                OR
-            </span>
-            
-            {/* 右邊的線 */}
-            <div className="h-[1px] bg-zinc-700 flex-1" />
-        </div>
+        
     </div>
 
-    <div className="text-center text-sm text-default-500">
+    <div className="pl-30 mt-0 text-sm text-default-500">
         {switchText}{" "}
         <button
         type="button"
@@ -264,6 +250,19 @@ return (
         {switchLinkText}
         </button>
     </div>
+    {/* -------OR------ */}
+        <div className="flex items-center w-full gap-4 mt-0 mb-3">
+            {/* 左邊的線：h-px 是高度 1px，flex-1 讓它自動佔滿空間 */}
+            <div className="h-[1px] bg-zinc-700 flex-1" />
+            
+            {/* 中間的文字 */}
+            <span className="text-black dark:text-zinc-500  text-xs uppercase">
+                OR
+            </span>
+            
+            {/* 右邊的線 */}
+            <div className="h-[1px] bg-zinc-700 flex-1" />
+        </div>
     </Form>
 );
 }

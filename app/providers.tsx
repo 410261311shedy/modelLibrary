@@ -1,13 +1,14 @@
 // app/providers.tsx
 'use client' // 必須是 Client Component
 
-import { HeroUIProvider } from '@heroui/react';
+import { HeroUIProvider, ToastProvider } from '@heroui/react';
 import React from 'react';
 import BackgroundBlobs from '@/components/BackgroundBlobs';
 
 export function Providers({ children }: { children: React.ReactNode }) {
     return (
         <HeroUIProvider>
+            <ToastProvider placement='top-right'/>
             <BackgroundBlobs/>
             {children}
         </HeroUIProvider>

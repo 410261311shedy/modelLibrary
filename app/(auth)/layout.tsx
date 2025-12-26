@@ -1,6 +1,6 @@
 import React, { ReactNode } from "react";
 import Image from "next/image";
-
+import SocialAuthForm from "@/components/forms/SocialAuthForm";
 
 const AuthLayout = ({ children }: { children: ReactNode }) => {
     return (
@@ -25,8 +25,8 @@ const AuthLayout = ({ children }: { children: ReactNode }) => {
                         </p>
                     </div>
                     <div className="w-full">
-                    {children}
-                    {/* <SocialAuthForm /> */}
+                        {children}
+                        <SocialAuthForm />
                     </div>
                 </div>
                 

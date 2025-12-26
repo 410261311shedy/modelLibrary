@@ -38,7 +38,7 @@ const ModelCard = ({selectedCategory}:ModelCardProps) => {
                 <div className="absolute rounded-[20px] pointer-events-none z-10 inset-0">
                 </div>
                 {/* 右上角的懸浮小圖示 到時候需要一個boolean來判斷是否顯示*/}
-                {(card.is3D === "3D")?(
+                {(card.is3D )?(
                   <div className="bg-[#FFFFF4] dark:bg-[#3F3F46] absolute top-3 right-5 p-2 rounded-full backdrop-blur-md z-20 border border-white/10">
                     <Rotate3D
                       width={16}
