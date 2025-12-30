@@ -275,19 +275,19 @@ return (
         {/* Node 1: HTML */}
         <g transform="translate(126, 60)">
             <circle r="5" fill="#555" className="node-html transition-colors" />
-            <text y="24" textAnchor="middle" fill="#666" fontSize="12" className="font-mono">.html</text>
+            <text y="24" textAnchor="middle" fill="#666" fontSize="12" className="font-mono"></text>
         </g>
         
         {/* Node 2: CSS */}
         <g transform="translate(422, 60)">
             <circle r="5" fill="#555" className="node-css transition-colors" />
-            <text y="24" textAnchor="middle" fill="#666" fontSize="12" className="font-mono">.css</text>
+            <text y="24" textAnchor="middle" fill="#666" fontSize="12" className="font-mono"></text>
         </g>
 
         {/* Node 3: JS */}
         <g transform="translate(717, 60)">
             <circle r="5" fill="#555" className="node-js transition-colors" />
-            <text y="24" textAnchor="middle" fill="#666" fontSize="12" className="font-mono">.js</text>
+            <text y="24" textAnchor="middle" fill="#666" fontSize="12" className="font-mono"></text>
         </g>
         </svg>
     </div>

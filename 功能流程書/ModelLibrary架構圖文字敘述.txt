@@ -1,0 +1,39 @@
+hostinger
+coolify
+系統架構全景圖 (給利害關係人看：資料存哪裡？ 在這個圖表中 登入跟註冊是對的，不過在r2 mongodb ftp那邊的互動，我要分成兩種 一個是使用者
+
+1.角色: 會用這個APP的是與建築設計相關的人
+
+
+
+2.核心功能:
+註冊登入、
+使用者dashboard(
+setting:change profile photo,change name,change email,change password, user role, copy user ID;
+Team: set team name, add members, filter all users; 
+models:管理自己上傳的models，管理team models,管理收藏models);
+
+gallery page:
+瀏覽網站上使用者們分享的model工程模型(3D檔案(IFC)、2D檔案(工程設計圖.pdf))在此頁面會以card的型態展示，model在card形態下提供下載跟收藏還有點擊進到model card detail page功能;
+
+Model card detail page(點擊model card進入):
+在使用者分享的model card detail page底下留言、收藏modelcard、
+下載model中的(IFC(跟FTP要) or 工程設計圖.pdf(跟R2要)) (下載次數會被記錄)、
+若model是3d圖，則可以在model card detail page中的model viewer跟該model互動(與R2調用.frag檔案 選染更快速)
+分享model連結;
+
+update Page
+使用者上傳model(
+1.選擇檔案(.ifc或是.pdf) 
+2.選擇封面(.ifc:渲染在畫面上並且提供操作模型左右縮放選轉功能讓使用者截圖模型圖、.pdf:縮放裁減pdf檔案) 
+3.metadata:設定該Model card的title、category、keywords(for helping people to find your model)、description、images(封面額外的圖片)、associated model set功能(使用者自己動關聯)(一個工程專案的.ifc跟.pdf不能放在同一個model page內，要分開上傳，並且用此功能關聯他們，有關聯的model page將顯示在該model card detail page的最下面名為related model欄位中以model card型態展示；此外若該上傳model是一個大model中的組件or元素 又或者反之，使用者也可以在此功能中手動將他們關聯))
+permission setting(e.g. standard license)
+belonging team(使用者可加入team中);
+
+
+外部服務: google oauth , r2,ftp,mongodb
+
+技術:next.js(React+ts) +heroUI+後端mongoose
+
+這是一個線上的建築工程的model分享平台，在上面使用者可以上傳自己的model(.ifc檔 or .pdf檔(存在R2中))、瀏覽其他使用者上傳的model、下載其他使用者的model(IFC檔案，跟FTP要)、建立團隊team、在model detail page上面留言還有回覆留言，在model detail page上的model viewer(跟R2要.frag檔案渲染)跟3d模型互動，我們主要的技術在於我們有三個伺服器 一個FTP 一個R2  一個mongodb，在使用者上傳.ifc檔案的時候 會先將.ifc parse 為.frag檔案 壓縮大小並且加快渲染速度，並且在使用者確認上傳後，將.frag檔案存到R2中(僅提供渲染) .IFC檔案到FTP中(提供給其他使用者Download)，存pdf到R2中，mongodb則是存儲IFC檔案在FTP裡面的位置以及frag檔案在R2還有.pdf在R2裡面的位置，還有其他基本功能的字串陣列數字的存儲。請幫我生成mermaid的流程圖，提供給非技術人員了解我們的應用程式的流程圖
+

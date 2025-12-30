@@ -10,7 +10,7 @@ html, body {
 @source '../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
 @custom-variant dark (&:is(.dark *));
 
-@utility background-blobs-amber-50_darkblack {
+@utility bg-amber50_darkblack {
   @apply bg-amber-50 dark:bg-black;
 }
 /* --- 新增這段 --- */
@@ -42,27 +42,146 @@ html, body {
     @apply translate-y-0 scale-90;
   }
 }
-  transition-transform duration-300 ease-out translate-y-0 scale-95
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* for background blobs */
+@layer components {
+    .blob1 {
+      @apply size-[300px] md:size-[500px] ;
+      aspect-ratio: 1/1;
+      background-color:#80A4D7E6;
+      border-radius: 100%;
+      
+      animation: moveShape1 18s cubic-bezier(0.445,0.05,0.55,0.95) infinite alternate ; 
+    }
+    .blob2 {
+      @apply size-[300px] md:size-[500px];
+      aspect-ratio: 1/1;
+      background-color:#A42E4CE6;
+      border-radius: 100%;
+      
+      animation: moveShape2 18s cubic-bezier(0.445,0.05,0.55,0.95) infinite alternate ; 
+    }
+    .blob3 {
+      @apply size-[200px] md:size-[300px];
+      aspect-ratio: 1/1;
+      background-color:#80A4D7;
+      border-radius: 30% 70% 70% 30% / 30% 40% 70% 70%;
 
-:root {
-  --blob-color-a: #80A4D7; /* Light theme blob A color */
-  --blob-color-b: #A42E4C; /* Light theme blob B color */
-}
+      animation: changeShape 6s linear infinite,rotateShape 12s linear infinite,
+      moveShape3 18s cubic-bezier(0.445,0.05,0.55,0.95) infinite alternate ; 
+                  
+    }
+    .blob4 {
+      @apply size-[150px] md:size-[225px];
+      aspect-ratio: 1/1;
+      background-color:#A42E4C;
+      border-radius: 30% 70% 70% 30% / 30% 40% 70% 70%;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --blob-color-a: #4A6F9B; /* Dark theme blob A color */
-    --blob-color-b: #7A2238; /* Dark theme blob B color */
+      animation: changeShape 6s linear infinite,rotateShape 12s linear infinite,
+      moveShape4 18s cubic-bezier(0.445,0.05,0.55,0.95)  infinite alternate; 
+                  
+      
+    }
+}
+@keyframes rotateShape {
+  0%{
+    transform: rotate(0deg);
+  }
+  100%{
+    transform: rotate(360deg);
   }
 }
 
+@keyframes changeShape {
+  0%, 
+  100% {
+    border-radius: 30% 70% 70% 30% / 30% 40% 70% 70%;
+  }
+  20%{
+    border-radius: 40% 65% 50% 50% / 40% 35% 35% 65%;
+  }
+  40%{
+    border-radius: 35% 65% 65% 35% / 65% 50% 50% 25%;
+  }
+  60%{
+    border-radius: 40% 65% 50% 50% / 30% 30% 70% 75%;
+  }
+  80%{
+    border-radius: 40% 60% 40% 60% / 50% 50% 50% 60%;
+  }
+}
+@keyframes moveShape1 {
+  0%, 
+  100% {
+    transform: translate(20%, 0);
+  }
+  25% {
+    transform: translate(-100%, 40vh);
+  }
+  50% {
+    transform: translate(45%, 20vh);
+  }
+  75% {
+    transform: translate(-25%, -30vh);
+  }
+}
+@keyframes moveShape2 {
+  0%, 
+  100% {
+    transform: translate(-20%, 0);
+  }
+  25% {
+    transform: translate(100%, -40vh);
+  }
+  50% {
+    transform: translate(10%, -20vh);
+  }
+  75% {
+    transform: translate(65%, 30vh);
+  }
+}
+@keyframes moveShape3 {
+  0%, 
+  100% {
+    transform: translate(-20%, 30vh);
+  }
+  25% {
+    transform: translate(50%, -40vh);
+  }
+  50% {
+    transform: translate(30%, 20vh);
+  }
+  75% {
+    transform: translate(-40%, 30vh);
+  }
+}
+@keyframes moveShape4 {
+  0%, 
+  100% {
+    transform: translate(20%, -50vh);
+  }
+  25% {
+    transform: translate(-30%, 20vh);
+  }
+  50% {
+    transform: translate(10%, -20vh);
+  }
+  75% {
+    transform: translate(65%, 30vh);
+  }
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --blob-color-a: #80A4D7; /* Light theme blob A color */
+  --blob-color-b: #A42E4C; /* Light theme blob B color */
+  
+}
+
+
 @theme inline {
   --color-primary: #D70036;
-  
+  --color-gomore-blue-2: #0B1D37;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
@@ -84,3 +203,5 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+

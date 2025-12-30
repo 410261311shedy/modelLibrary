@@ -1,4 +1,4 @@
-import {PackageOpen,Building,Boxes,Box,FileBox, Users ,File} from "lucide-react"
+import {PackageOpen,Building,Boxes,Box,FileBox, Users ,File,Settings} from "lucide-react"
 
 export const itemsQuery =[
     {id:'ALL',label:"ALL",icon:PackageOpen},
@@ -38,3 +38,9 @@ export const card : cardProps[] = [
     {id:"8",title:"model 8",is3D:false,image:"/projectTest4.png",category:"2D Drawings",thumbsUp:50,views:70,createdAt:new Date("2025-12-08")},
     {id:"9",title:"model 9",is3D:false,image:"/projectTest4.png",category:"2D Drawings",thumbsUp:90,views:60,createdAt:new Date("2025-12-09")},
 ];
+
+export const DashboardButtons = [
+    {id:"Settings",label:"Settings",icon:Settings},
+    {id:"Team",label:"Team",icon:Users},
+    {id:"Models",label:"Models",icon:FileBox},
+]

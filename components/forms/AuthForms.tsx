@@ -2,110 +2,65 @@ import React from "react";
 import {Form, Input, Button} from "@heroui/react";
 import {useRouter} from "next/navigation";
 import {Eye,EyeOff} from "lucide-react";
+import { SignInSchema, SignUpSchema } from "@/lib/validations";
+import { z } from "zod";
 
 type AuthFormType = "SIGN_IN" | "SIGN_UP";
 
 type AuthFormProps<TValues extends Record<string, string>> = {
-    schema?: unknown; // 目前不使用 zod，保留 signature
+    schema?: z.ZodType<TValues>;
     defaultValues: TValues;
     formType: AuthFormType;
-    onSubmit: (values: TValues) => Promise<{success: boolean}>;
+    onSubmit: (values: TValues) => Promise<{success: boolean, error?: string}>;
 };
 
-type ErrorMap = Record<string, string | undefined>;
+type ErrorMap = Record<string, string>;
 
 function getLabelFromName(name: string) {
     if (name === "email") return "Email Address";
     if (name === "password") return "Password";
+    if (name === "confirmPassword") return "Confirm Password";
     // 其他欄位：首字母大寫
     return name.charAt(0).toUpperCase() + name.slice(1);
 }
 
-// 驗證邏輯依照你給的規格書實作
-function validateField(
-formType: AuthFormType,
-name: string,
-value: string
-): string | null {
-    // 共用：trim
-    const v = value ?? "";
+/**
+ * Validates form data using Zod schemas defined in Validation.ts
+ * @param formType - Either "SIGN_IN" or "SIGN_UP"
+ * @param data - The current form values
+ * @returns An object containing field names as keys and error messages as values
+ */
+function validateWithZod(
+    formType: AuthFormType,
+    data: Record<string, string>
+): ErrorMap {
+    // Select the appropriate schema based on form type
+    const schema = formType === "SIGN_IN" ? SignInSchema : SignUpSchema;
+    
+    const result = schema.safeParse(data);
+    const errors: ErrorMap = {};
 
-    if (formType === "SIGN_IN") {
-        if (name === "username") {
-            if (!v) return "Username is required.";
-      // 登入時通常不需要像註冊那樣檢查長度或正則表達式，只要有填寫即可
-      // 如果你需要更嚴格的檢查，可以把 SIGN_UP 的邏輯搬過來
+    // If validation fails, map Zod issues to our ErrorMap format
+    if (!result.success) {
+        result.error.issues.forEach((issue) => {
+            const path = issue.path[0] as string;
+            // Only keep the first error for each field
+            if (!errors[path]) {
+                errors[path] = issue.message;
             }
-        
-
-        if (name === "password") {
-        if (v.length < 6) {
-            return "password must be at least 6 characters.";
-        }
-        if (v.length > 100) {
-            return "password cannot exceed 100 characters.";
-        }
-        }
+        });
     }
 
+    // Manual check for confirmPassword (since it depends on the password field)
     if (formType === "SIGN_UP") {
-        if (name === "username") {
-        if (v.length < 3) {
-            return "Username must be at least 3 characters long.";
-        }
-        if (v.length > 30) {
-            return "Username cannot exceed 30 characters.";
-        }
-        if (!/^[A-Za-z0-9_]+$/.test(v)) {
-            return "Username can only contain letters, numbers, and underscores.";
-        }
-        }
-
-        if (name === "name") {
-        if (!v) {
-            return "Name is required.";
-        }
-        if (v.length > 50) {
-            return "Name cannot exceed 50 characters.";
-        }
-        if (!/^[A-Za-z\s]+$/.test(v)) {
-            return "Name can only contain letters and spaces.";
-        }
-        }
-
-        if (name === "email") {
-        if (!v) {
-            return "Email is required.";
-        }
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(v)) {
-            return "Please provide a valid email address.";
-        }
-        }
-
-        if (name === "password") {
-        if (v.length < 6) {
-            return "Password must be at least 6 characters long.";
-        }
-        if (v.length > 100) {
-            return "Password cannot exceed 100 characters.";
-        }
-        if (!/[A-Z]/.test(v)) {
-            return "Password must contain at least one uppercase letter.";
-        }
-        if (!/[a-z]/.test(v)) {
-            return "Password must contain at least one lowercase letter.";
-        }
-        if (!/[0-9]/.test(v)) {
-            return "Password must contain at least one number.";
-        }
-        if (!/[^A-Za-z0-9]/.test(v)) {
-            return "Password must contain at least one special character.";
-        }
+        if (!data.confirmPassword) {
+            errors.confirmPassword = "Please confirm your password.";
+        } else if (data.password !== data.confirmPassword) {
+            errors.confirmPassword = "Passwords do not match.";
         }
     }
 
-    return null;
+    return errors;
 }
 
 export function AuthForm<TValues extends Record<string, string>>(
@@ -119,11 +74,21 @@ const [errors, setErrors] = React.useState<ErrorMap>({});
 const [isSubmitting, setIsSubmitting] = React.useState(false);
 
 const handleChange = (name: string, value: string) => {
-    setValues((prev) => ({...prev, [name]: value} as TValues));
+    // 1. Update local state with the new value
+    const newValues = {...values, [name]: value} as TValues;
+    setValues(newValues);
 
-    // 即時驗證
-    const msg = validateField(formType, name, value);
-    setErrors((prev) => ({...prev, [name]: msg || undefined}));
+    // 2. Perform real-time validation for the changed field
+    const allErrors = validateWithZod(formType, newValues);
+    setErrors((prev) => {
+        const next = { ...prev };
+        if (allErrors[name]) {
+            next[name] = allErrors[name];
+        } else {
+            delete next[name];
+        }
+        return next;
+    });
 };
 
 const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
@@ -132,28 +97,31 @@ const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
     const formData = new FormData(e.currentTarget);
     const data = Object.fromEntries(formData) as TValues;
 
-    // 全欄位驗證
-    const newErrors: ErrorMap = {};
-    for (const [name, value] of Object.entries(data)) {
-    const msg = validateField(formType, name, String(value ?? ""));
-    if (msg) newErrors[name] = msg;
-    }
-
+    // Perform full form validation before submission
+    const newErrors = validateWithZod(formType, data);
     setErrors(newErrors);
 
+    // Stop submission if there are any validation errors
     if (Object.values(newErrors).some(Boolean)) {
-    return;
+        return;
     }
 
     setIsSubmitting(true);
     try {
-    const result = await onSubmit(data);
-    // 這裡假設 onSubmit 回傳 { success: boolean }，若失敗可在上層再傳回 field errors 給 validationErrors 使用
-    if (!result.success) {
-        // 若需要，這裡可以根據 server 回應更新 setErrors
-    }
+        const result = await onSubmit(data);
+        
+        // Handle server-side errors (e.g., duplicate email or invalid credentials)
+        if (!result.success && result.error) {
+            const errorMsg = result.error.toLowerCase();
+            if (errorMsg.includes("email")) {
+                setErrors(prev => ({...prev, email: result.error as string}));
+            } else if (errorMsg.includes("username") || errorMsg.includes("user") || errorMsg.includes("credential")) {
+                // Map "user not found", "username", or "credentials" errors to the username field
+                setErrors(prev => ({...prev, username: result.error as string}));
+            }
+        }
     } finally {
-    setIsSubmitting(false);
+        setIsSubmitting(false);
     }
 };
 
@@ -193,7 +161,8 @@ return (
         const value = values[name] ?? "";
         const error = errors[name];
         const label = getLabelFromName(name);
-        const type = name === "password" ? "password" : "text";
+        const isPasswordField = name === "password" || name === "confirmPassword";
+        const type = isPasswordField ? "password" : "text";
         const isRequired = true;
 
         return (
@@ -215,14 +184,15 @@ return (
                 "bg-white dark:bg-[#27272A] shadow-[0px_3px_2px_rgba(255,255,255,0.18),0px_0px_4px_rgba(255,255,255,0.24),inset_0px_3px_5px_rgba(0,0,0,0.64),inset_0px_-1px_2px_rgba(0,0,0,0.6)]",
             }}
             endContent={
-                name === "password" ?
-                (<button
-                type="button"
-                onClick={()=>{setIsVisible(!isVisible)}}
-                className="focus:outline-none"
+                isPasswordField ? (
+                <button
+                    type="button"
+                    onClick={toggleVisibility}
+                    className="focus:outline-none"
                 >
-                {!isVisible ? (<EyeOff className="size={20}"/>):(<Eye className="size={20}"/>)}
-                </button>):null
+                    {!isVisible ? <EyeOff className="size={20}" /> : <Eye className="size={20}" />}
+                </button>
+                ) : null
             }
             />
 

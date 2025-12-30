@@ -3,7 +3,7 @@ import { Geist, Geist_Mono, Inter, Almarai,ABeeZee } from "next/font/google";
 import "./globals.css";
 import {Providers} from './providers';
 import ThemeProvider from "@/context/Theme";
-import Navbarhead from "@/components/Navbar/Navbarhead";
+import Navbarhead from "@/components/navbar/Navbarhead";
 import { SessionProvider } from "next-auth/react";
 
 import { auth } from  "../auth"; // 引用您在 auth.ts 中導出的 auth 函數，並重新命名以避免潛在衝突
@@ -54,11 +54,8 @@ const RootLayout=async({children}: {children: React.ReactNode}) =>{
         >
           {/*wrapped the children between ThemeProvider to make sure the theme aplly ot all pages*/}
             {/* hero ui provider */}
-            <Providers>
-              <div className="flex flex-col justify-items-center min-h-screen relative z-20">
-                <Navbarhead/>
+            <Providers>              
                 {children}
-              </div>
             </Providers>
         </ThemeProvider>
       </SessionProvider>
@@ -68,3 +65,5 @@ const RootLayout=async({children}: {children: React.ReactNode}) =>{
 }
 
 export default RootLayout;
+
+

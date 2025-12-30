@@ -1,9 +1,14 @@
 import React, { ReactNode } from "react";
 import Image from "next/image";
 import SocialAuthForm from "@/components/forms/SocialAuthForm";
-
+import Navbarhead from "@/components/navbar/Navbarhead";
+import BackgroundBlobs from "@/components/blobs/BackgroundBlobs";
 const AuthLayout = ({ children }: { children: ReactNode }) => {
     return (
+    <>
+    <BackgroundBlobs/>
+    <div style={{backdropFilter:'blur(100px)',}} className="flex flex-col justify-items-center min-h-screen relative z-20">
+                <Navbarhead/>
         <main
             className="flex grow items-center justify-center bg-cover bg-center bg-no-repeat"
         >
@@ -33,6 +38,8 @@ const AuthLayout = ({ children }: { children: ReactNode }) => {
                 
             </section>
         </main>
+    </div>
+    </>
     );
 };
 

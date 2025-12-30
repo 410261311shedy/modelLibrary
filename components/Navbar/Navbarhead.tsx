@@ -8,6 +8,7 @@ import {
   DropdownTrigger,
   Dropdown,
   DropdownMenu,
+  PopoverProps,
   Avatar,
   Button,
 } from "@heroui/react";
@@ -15,13 +16,15 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { ThemeSwitcher } from "./ThemeSwitcher";
-import SearchBar from "../SearchBar/SearchBar";
+import SearchBar from "../searchBar/SearchBar";
 import SetLanguageButton from "../SetLanguageButton";
 import { useTheme } from "next-themes";
 import React from "react";
 import { useEffect, useState } from 'react';
 import MegaMenu from "../MegaMenu";
-
+import { useSession } from "next-auth/react";
+import { signOut } from 'next-auth/react';
+import { LogOut, Upload, UserRoundPen } from "lucide-react";
 
 const getLogoSrc = (isDark: boolean) => {
   return isDark ? "/icons/logowhite.svg" : "/icons/Logo.svg";
@@ -33,6 +36,7 @@ export default function Navbarhead() {
   const isDark = theme === "dark";
   const [mounted, setMounted] = useState(false);
   const pathName = usePathname();
+  const { data:session } = useSession();
   // 控制Megamenu是否顯示
   const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
   useEffect(() => {
@@ -87,41 +91,41 @@ export default function Navbarhead() {
           <NavbarContent as="div" className="items-center" justify="end">
             <SetLanguageButton/>
             <ThemeSwitcher/>
-            <Button 
+            {session ? 
+            (<Dropdown placement="bottom-end" className="font-abeezee">
+              <DropdownTrigger>
+                <Avatar
+                  isBordered
+                  as="button"
+                  className="transition-transform cursor-pointer active-press"
+                  color="secondary"
+                  name={session.user?.name || ""}
+                  size="sm"
+                  src={session.user?.image || ""}
+                  showFallback
+                />
+              </DropdownTrigger>
+              <DropdownMenu aria-label="Profile Actions" variant="flat" >
+                <DropdownItem key="Dashboard" href={`/dashboard/${session.user?.id}`}  endContent={<UserRoundPen size={16}/>} >
+                    Dashboard
+                  </DropdownItem>
+                <DropdownItem key="upload" href="/upload" endContent={<Upload size={16}/>}>Upload</DropdownItem>
+                <DropdownItem key="logout" color="danger" endContent={<LogOut size={16}/>} onPress={()=>signOut({redirectTo:"/sign-in"})}>
+                  Log out
+                </DropdownItem>
+              </DropdownMenu>
+            </Dropdown>):
+            (<Button 
+              as={Link}
+              href="/sign-in"
               variant="solid" 
               color="primary"
               size="md"
               radius="md"
               className="shadow-[0px_0px_2px_0px_#000000B2,inset_0px_4px_-4px_0px_#00000040,inset_0px_4px_2px_0px_#FFFFFF33]"
-            >Login</Button>
-            {/* <Dropdown placement="bottom-end">
-              <DropdownTrigger>
-                <Avatar
-                  isBordered
-                  as="button"
-                  className="transition-transform"
-                  color="secondary"
-                  name="Jason Hughes"
-                  size="sm"
-                  src="https://i.pravatar.cc/150?u=a042581f4e29026704d"
-                />
-              </DropdownTrigger>
-              <DropdownMenu aria-label="Profile Actions" variant="flat">
-                <DropdownItem key="profile" className="h-14 gap-2">
-                  <p className="font-semibold">Signed in as</p>
-                  <p className="font-semibold">zoey@example.com</p>
-                </DropdownItem>
-                <DropdownItem key="settings">My Settings</DropdownItem>
-                <DropdownItem key="team_settings">Team Settings</DropdownItem>
-                <DropdownItem key="analytics">Analytics</DropdownItem>
-                <DropdownItem key="system">System</DropdownItem>
-                <DropdownItem key="configurations">Configurations</DropdownItem>
-                <DropdownItem key="help_and_feedback">Help & Feedback</DropdownItem>
-                <DropdownItem key="logout" color="danger">
-                  Log Out
-                </DropdownItem>
-              </DropdownMenu>
-            </Dropdown> */}
+            >Login</Button>)}
+            
+            {/*  */}
           </NavbarContent>
         </Navbar>
         {/* MegaMenu 區塊，直接放在 Navbar 下方 */}

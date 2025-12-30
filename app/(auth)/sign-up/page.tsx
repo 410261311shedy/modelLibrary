@@ -1,23 +1,21 @@
 'use client';
 import React from 'react';
 import { AuthForm } from '@/components/forms/AuthForms';
-import { success } from 'zod';
+import { signUpWithCredentials } from '@/lib/actions/auth.action';
 
 const SignUp = () => {
   return (
-    
-      <AuthForm
-        formType="SIGN_UP"
-        defaultValues={{
-          username: "",
-          name: "",
-          email: "",
-          password: "",
-        }}
-        onSubmit={
-          (data) => Promise.resolve({success:true,data})
-        }
-      />
+    <AuthForm
+      formType="SIGN_UP"
+      defaultValues={{
+        username: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+      }}
+      // 呼叫註冊 Server Action
+      onSubmit={signUpWithCredentials}
+    />
     
   )
 }

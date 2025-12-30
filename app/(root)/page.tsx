@@ -6,9 +6,11 @@ import Footer from '@/components/Footer';
 import ModelCard from '@/components/cards/ModelCard';
 import HeroAnimation from '@/components/animation/HeroAnimation';
 import { itemsQuery } from '../globalUse';
+import { useSession } from 'next-auth/react';
+
 
 const Home = () => {
-
+  const { data:session,status } = useSession();
   //for itemsQuery
   const [isSelectId,setIsSelectId] = React.useState('ALL');
   //for Newest Hottest Query
@@ -20,8 +22,8 @@ const Home = () => {
         <Image src="/icons/GOMOREonly.svg" width={300} height={300} alt="GoMore Logo" className=""/>
         <Image src="/Connect More, Achieve More.svg" width={500 } height={500 } alt="Slogan" className="invert dark:invert-0"/>
         <p className="text-[#5B5B5B] dark:text-[#BEBEBE] text-[17px] font-almarai">Build a 3D Model Community--Share Knowledge,Connect Partners</p>
-        <div className='flex gap-5  '>
-          <a href="/sign-up">  
+        <div className='flex gap-5'>
+          {status === "unauthenticated" && (<a href="/sign-up">  
             <button className='hover-lift hover:cursor-pointer relative shadow-[inset_0_1px_2px_#ffffffbf] font-inter font-semibold text-white text-sm px-4 py-2 rounded-lg'
             style={{
               background: `
@@ -32,7 +34,7 @@ const Home = () => {
               }}
               >Get Started
             </button>
-          </a>
+          </a>)}
         </div>
       </div>
 
