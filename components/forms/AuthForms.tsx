@@ -188,6 +188,7 @@ return (
                 <button
                     type="button"
                     onClick={toggleVisibility}
+                    aria-label={isVisible ? "Hide password" : "Show password"}
                     className="focus:outline-none"
                 >
                     {!isVisible ? <EyeOff className="size={20}" /> : <Eye className="size={20}" />}

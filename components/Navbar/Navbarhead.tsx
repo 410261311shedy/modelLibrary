@@ -105,7 +105,11 @@ export default function Navbarhead() {
                   showFallback
                 />
               </DropdownTrigger>
-              <DropdownMenu aria-label="Profile Actions" variant="flat" >
+              <DropdownMenu aria-label="Profile Actions" variant="flat" 
+                      itemClasses={{
+                        base:"text-black dark:text-white",
+
+                      }}>
                 <DropdownItem key="Dashboard" href={`/dashboard/${session.user?.id}`}  endContent={<UserRoundPen size={16}/>} >
                     Dashboard
                   </DropdownItem>

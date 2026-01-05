@@ -4,7 +4,7 @@ import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 
-import dbConnect from "@/mongoose";
+import dbConnect from "@/lib/mongoose";
 import User from "@/models/user.model";
 import Account from "@/models/account.model";
 import { SignInSchema } from "@/lib/validations";

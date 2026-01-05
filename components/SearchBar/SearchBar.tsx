@@ -16,6 +16,7 @@ const SearchBar = ({isMenuOpen,onToggle}:SearchBarProps) => {
     return (
         <>
             <Input
+                aria-label="Search 3D models"
                 classNames={{
                     base: "w-full sm:max-w-[433px] h-10",
                     mainWrapper: "h-full",
@@ -28,7 +29,11 @@ const SearchBar = ({isMenuOpen,onToggle}:SearchBarProps) => {
                 // <button className='hover-lift flex ml-[3px] pl-[17px] py-[7px] items-center rounded-l-full bg-[#D4D4D8] dark:bg-[#3F3F46] shadow-[0px_0px_2px_0px_#000000B2,inset_0px_-4px_4px_0px_#00000040,inset_0px_4px_2px_0px_#FFFFFF33] w-[90px]'><p className='font-inter text-[12px]'>ALL</p><ChevronDown size={20}/></button>
                 startContent={
                     // 用純 Button 觸發 onToggle
-                    <button type='button' onClick={onToggle} className={`active-press flex ml-[3px] pl-[17px] py-[7px] items-center rounded-l-full bg-[#D4D4D8] dark:bg-[#3F3F46] shadow-[0px_0px_2px_0px_#000000B2,inset_0px_-4px_4px_0px_#00000040,inset_0px_4px_2px_0px_#FFFFFF33] w-[90px] 
+                    <button
+                        type='button'
+                        onClick={onToggle}
+                        aria-label="Toggle category menu"
+                        className={`active-press flex ml-[3px] pl-[17px] py-[7px] items-center rounded-l-full bg-[#D4D4D8] dark:bg-[#3F3F46] shadow-[0px_0px_2px_0px_#000000B2,inset_0px_-4px_4px_0px_#00000040,inset_0px_4px_2px_0px_#FFFFFF33] w-[90px]
                         ${isMenuOpen ? "bg-red-600 text-white" : "bg-[#D4D4D8] dark:bg-[#3F3F46]"}`}>
                         <p className='font-inter text-[12px]'>ALL</p>
                         {isMenuOpen ? <ChevronUp size={20}/>:<ChevronDown size={20}/>}
@@ -37,6 +42,7 @@ const SearchBar = ({isMenuOpen,onToggle}:SearchBarProps) => {
                 endContent={
                     <button
                         type="button"
+                        aria-label="Search"
                         className="active-press hover:cursor-pointer rounded-full p-2 bg-[#D4D4D8] dark:bg-[#52525B] shadow-[0px_0px_2px_#000000B2,inset_0px_-4px_4px_0px_#00000040,inset_0px_4px_2px_0px_#FFFFFF33]"
                         >
                         <Search

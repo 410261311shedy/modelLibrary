@@ -11,6 +11,7 @@ export function ThemeSwitcher() {
   console.log("Current theme:", theme);
   return (
     <Switch
+      aria-label="Toggle theme"
       isSelected={isLight}
       onValueChange={(selected) => setTheme(selected ? "light" : "dark")}
       color="secondary"

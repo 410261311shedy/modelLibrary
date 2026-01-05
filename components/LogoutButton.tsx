@@ -5,8 +5,10 @@ import { signOut } from 'next-auth/react';
 const LogoutButton = () => {
     
     return (
-        <button onClick={ () => {signOut({redirectTo:"/sign-in"})}
-        }>
+        <button
+            onClick={ () => {signOut({redirectTo:"/sign-in"})} }
+            aria-label="Log out"
+        >
             Log out
         </button>
     );

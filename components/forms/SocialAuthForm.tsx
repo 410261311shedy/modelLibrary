@@ -23,9 +23,12 @@ const SocialAuthForm = () => {
             })
         }
     }
-    return (    
-        <button onClick={()=> handleSignIn("google")} className='bg-white/60 dark:bg-[#18181B] hover-lift w-full rounded-lg flex items-center justify-center gap-2 h-[40px] shadow-[0px_0px_2px_0px_#000000B2,inset_0px_-4px_4px_0px_#00000040,inset_0px_4px_2px_0px_#FFFFFF33]'>
-            <Image 
+    return (
+        <button
+            onClick={()=> handleSignIn("google")}
+            aria-label="Continue with Google"
+            className='bg-white/60 dark:bg-[#18181B] hover-lift w-full rounded-lg flex items-center justify-center gap-2 h-[40px] shadow-[0px_0px_2px_0px_#000000B2,inset_0px_-4px_4px_0px_#00000040,inset_0px_4px_2px_0px_#FFFFFF33]'>
+            <Image
             src="/icons/googleIcon.svg" 
             height={20} 
             width={20}

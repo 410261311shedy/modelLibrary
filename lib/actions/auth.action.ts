@@ -3,7 +3,7 @@
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
 
-import dbConnect from "@/mongoose";
+import dbConnect from "@/lib/mongoose";
 import User from "@/models/user.model";
 import Account from "@/models/account.model";
 import { SignUpSchema } from "@/lib/validations";

@@ -66,7 +66,10 @@ const ModelCard = ({selectedCategory}:ModelCardProps) => {
               </p>
               {/* shrink 0 for 當文字過長也不可以擠壓到按鈕 */}
               <div className='flex gap-2 shrink-0'>
-                <button onClick={(e)=>{e.stopPropagation(); console.log("Download clicked");}} className='hover-lift flex items-center bg-[#FFFFF4] dark:bg-[#52525B] rounded-lg px-3 py-1.5 shadow-[inset_0px_2px_5px_rgba(255,255,255,0.8),inset_0px_-1px_3px_rgba(0,0,0,0.8)] dark:shadow-[inset_0px_2px_1px_rgba(255,255,245,0.2),inset_0px_-2px_8px_rgba(0,0,0,0.4)]
+                <button
+                  onClick={(e)=>{e.stopPropagation(); console.log("Download clicked");}}
+                  aria-label={`Download ${card.title}`}
+                  className='hover-lift flex items-center bg-[#FFFFF4] dark:bg-[#52525B] rounded-lg px-3 py-1.5 shadow-[inset_0px_2px_5px_rgba(255,255,255,0.8),inset_0px_-1px_3px_rgba(0,0,0,0.8)] dark:shadow-[inset_0px_2px_1px_rgba(255,255,245,0.2),inset_0px_-2px_8px_rgba(0,0,0,0.4)]
                 active:shadow-sm'>
                   <Image
                     className='invert dark:invert-0'
@@ -77,7 +80,10 @@ const ModelCard = ({selectedCategory}:ModelCardProps) => {
                   />
                   <p className='ml-1 font-medium text-black dark:text-[#E4E4E7] font-medium'><span className='hidden lg:inline'>Download</span></p>
                 </button>
-                <button onClick={(e)=>{e.stopPropagation(); console.log("Archive clicked");}} className='hover-lift bg-[#FFFFF4] dark:bg-[#52525B] rounded-lg px-2 py-1 shadow-[inset_0px_2px_5px_rgba(255,255,255,0.8),inset_0px_-1px_3px_rgba(0,0,0,0.8)] dark:shadow-[inset_0px_2px_1px_rgba(255,255,245,0.2),inset_0px_-2px_8px_rgba(0,0,0,0.4)]
+                <button
+                  onClick={(e)=>{e.stopPropagation(); console.log("Archive clicked");}}
+                  aria-label={`Archive ${card.title}`}
+                  className='hover-lift bg-[#FFFFF4] dark:bg-[#52525B] rounded-lg px-2 py-1 shadow-[inset_0px_2px_5px_rgba(255,255,255,0.8),inset_0px_-1px_3px_rgba(0,0,0,0.8)] dark:shadow-[inset_0px_2px_1px_rgba(255,255,245,0.2),inset_0px_-2px_8px_rgba(0,0,0,0.4)]
                 active:shadow-sm'>
                   <Image 
                     className='invert dark:invert-0'

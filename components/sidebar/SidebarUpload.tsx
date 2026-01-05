@@ -48,7 +48,7 @@ return (
         <div className="flex gap-4 mb-0 mt-5 px-4">
             <Button 
                 {...(currentStep === 1 ? { as: Link, href: "/" } : { onPress: onBack })}
-                className="font-inter flex-1 bg-[#18181B] shadow-[0px_0px_2px_0px_#000000B2,inset_0px_-4px_4px_0px_#00000040,inset_0px_4px_2px_0px_#FFFFFF33]" 
+                className="font-inter text-white flex-1 bg-[#18181B] shadow-[0px_0px_2px_0px_#000000B2,inset_0px_-4px_4px_0px_#00000040,inset_0px_4px_2px_0px_#FFFFFF33]" 
                 >
                 <MoveLeft size={15} className="mr-2"/>
                 {currentStep === 1 ? "Cancel" :"Back"}
@@ -58,7 +58,7 @@ return (
             <Button 
                     //undefined is "onCreate" replacer
                 onPress={currentStep === 3 ? undefined : onNext}
-                className="font-inter flex-1 bg-[#D70036] shadow-[0px_0px_2px_0px_#000000B2,inset_0px_-4px_4px_0px_#00000040,inset_0px_4px_2px_0px_#FFFFFF33]"
+                className="font-inter text-white flex-1 bg-[#D70036] shadow-[0px_0px_2px_0px_#000000B2,inset_0px_-4px_4px_0px_#00000040,inset_0px_4px_2px_0px_#FFFFFF33]"
                 >
                 {currentStep === 3 ? "Create" : "Next"}
                 <MoveRight size={15} className="ml-2"/>

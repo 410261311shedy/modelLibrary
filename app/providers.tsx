@@ -3,7 +3,6 @@
 
 import { HeroUIProvider, ToastProvider } from '@heroui/react';
 import React from 'react';
-import BackgroundBlobs from '@/components/blobs/BackgroundBlobs';
 
 export function Providers({ children }: { children: React.ReactNode }) {
     return (

@@ -17,6 +17,7 @@ const SetLanguageButton = () => {
             <Button
             size="sm"
             variant="bordered"
+            aria-label="Select language"
             className='invert dark:invert-0 font-inter'
             >
             {locale === "en-US" ? "English" : "中文"}
