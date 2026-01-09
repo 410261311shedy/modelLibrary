@@ -55,7 +55,7 @@ const Home = () => {
                 //declare this is a unique button
                 key={item.id}
                 onClick={()=>{setIsSelectId(item.id)}}//click and update selected button Id
-                className={`relative transition-all bg-black/20 flex flex-col justify-center items-center gap-2 rounded-[8px] h-full w-[20%] hover:cursor-pointer hover-lift font-abeezee text-sm text-[#B8B8B8]
+                className={`relative transition-all bg-black/20 flex flex-col justify-center items-center gap-2 rounded-[8px] h-full w-[20%] min-w-[61px] hover:cursor-pointer hover-lift font-abeezee text-sm text-[#B8B8B8]
                   ${isSelected ? "p-[1px] bg-gradient-to-r from-pink-500 to-purple-500":"border-1 border-[#B8B8B8]"}
                   `}     
                 >
@@ -64,7 +64,7 @@ const Home = () => {
                     w-full h-full rounded-[7px] flex flex-col justify-center items-center gap-2
                     ${isSelected ? "bg-gray-700" : ""} // 關鍵！選中時要用實心深色背景蓋住漸層 (請換成您背景的深色代碼)
                   `}>
-                      <item.icon
+                      <item.icon   
                       height={30}
                       width={30}
                       className=''

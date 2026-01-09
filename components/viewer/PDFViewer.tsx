@@ -1,16 +1,19 @@
 "use client";
 
 import React from 'react';
+import { Worker,Viewer } from '@react-pdf-viewer/core';
 import { FileText } from 'lucide-react';
 
+
+
 interface PDFViewerProps {
-  file: File | null;
+  file: string | File | null;
 }
 
 const PDFViewer = ({ file }: PDFViewerProps) => {
   // 這裡之後可以整合 pdf.js 或簡單使用 iframe/object 預覽
   return (
-    <div className="w-full h-full bg-[#18181B] flex flex-col items-center justify-center text-gray-400 gap-4">
+    <div className="rounded-lg w-full h-full bg-[#18181B] flex flex-col items-center justify-center text-gray-400 gap-4">
       <div className="bg-[#27272A] p-8 rounded-full shadow-2xl">
         <FileText size={64} className="text-[#D70036]" />
       </div>

@@ -13,34 +13,34 @@ interface SidebarUploadProps {
 
 const SidebarUpload = ({ currentStep,onNext,onBack }: SidebarUploadProps) => {
 return (
-    <aside style={{backdropFilter:'blur(100px)',backgroundColor: '#A1A1AA40',}} className="w-[32dvh] px-5 py-10 flex flex-col justify-between h-full">
-        <div>
-            <h2 className="mt-10 text-2xl font-bold text-white">Model Card Creator</h2>
+    <aside style={{backdropFilter:'blur(100px)',backgroundColor: '#A1A1AA40',}} className="w-[32dvh] px-5 py-8 flex flex-col shadow-[inset_0_0_20px_rgba(255,255,255,0.1)] justify-between h-full">
+        <div className=''>
+            <h2 className="text-2xl font-bold text-white">Model Card Creator</h2>
             <p className="text-gray-400 text-sm mt-2">Follow the steps to create your own model card</p>
             
-            <div className="mt-12">
-            <StepItem 
-                number={1} 
-                title="Model Upload" 
-                description="Upload your files here"
-                active={currentStep === 1} 
-                completed={currentStep > 1} 
-            />
-            <StepItem 
-                number={2} 
-                title="Cover Selection" 
-                description="Select a view for your card"
-                active={currentStep === 2} 
-                completed={currentStep > 2} 
-            />
-            <StepItem 
-                number={3} 
-                title="Metadata" 
-                description="Fill in the model metadata"
-                active={currentStep === 3} 
-                completed={false}
-                isLast={true}
-            />
+            <div className="mt-12 pl-2">
+                <StepItem 
+                    number={1} 
+                    title="Model Upload" 
+                    description="Upload your files here"
+                    active={currentStep === 1} 
+                    completed={currentStep > 1} 
+                />
+                <StepItem 
+                    number={2} 
+                    title="Cover Selection" 
+                    description="Select a view for your card"
+                    active={currentStep === 2} 
+                    completed={currentStep > 2} 
+                />
+                <StepItem 
+                    number={3} 
+                    title="Metadata" 
+                    description="Fill in the model metadata"
+                    active={currentStep === 3} 
+                    completed={false}
+                    isLast={true}
+                />
             </div>
         </div>
         

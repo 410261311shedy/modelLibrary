@@ -4,11 +4,13 @@ import React, { useState, useRef } from 'react';
 import { Button } from "@heroui/react";
 import { 
   PanelLeftClose, 
-  PanelLeftOpen, 
-  Upload, 
+  PanelLeftOpen,
   FileText, 
   Box, 
-  X 
+  X, 
+  FileUp,
+  Download,
+  Focus
 } from 'lucide-react';
 
 interface FileItem {
@@ -21,12 +23,20 @@ interface FileItem {
 interface ModelUploadSidebarProps {
   onFilesChange: (files: FileItem[]) => void;
   onSelectFile: (file: FileItem | null) => void;
+  onFocusAllModel: () => void;
+  onFocusModel:(modelId:string) => void;
+  onExportModelFrag: (modelId: string) => Promise<ArrayBuffer | null>;
+  onDeleteModel: (modelId: string) => void;
   selectedFileId: string | null;
 }
 
 const ModelUploadSidebar = ({ 
   onFilesChange, 
-  onSelectFile, 
+  onSelectFile,
+  onFocusAllModel,
+  onFocusModel, 
+  onDeleteModel,
+  onExportModelFrag,
   selectedFileId 
 }: ModelUploadSidebarProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -55,15 +65,67 @@ const ModelUploadSidebar = ({
     setFiles(updatedFiles);
     onFilesChange(updatedFiles);
 
+    // 👈 關鍵修正：處理完後清空 input 的值
+    if (fileInputRef.current) {
+        fileInputRef.current.value = ""; 
+    }
     // 如果是第一個上傳的檔案，自動選取
     if (files.length === 0 && newFiles.length > 0) {
       onSelectFile(newFiles[0]);
     }
   };
 
-  // 移除檔案
+  const focusModel = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    const fileItem = files.find(f => f.id === id);
+
+    if(fileItem && onFocusModel){
+      const modelId = fileItem.name.replace(/\.(ifc|frag)$/i, "");
+      onFocusModel(modelId);
+    }
+    
+
+  }
+  const exportFile = async(id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    //find the file
+    const fileItem = files.find(f => f.id === id);
+
+    if(fileItem && fileItem.type === '3d' && onExportModelFrag){
+      //get model id
+      const modelId = fileItem.name.replace(/\.(ifc|frag)$/i, "");
+
+      //call exportModel to get the Uint8Array
+      const fragsBuffer = await onExportModelFrag(modelId);
+
+      if(fragsBuffer){
+
+        const file = new File([fragsBuffer], `${modelId}.frag`);    
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(file);
+        a.download = file.name;
+        a.click();
+        URL.revokeObjectURL(a.href);
+
+        console.log(`模型 ${modelId} 匯出成功`);
+      } else {
+        console.error("無法取得模型數據");
+      }
+    }
+  }
+  // 移除檔案以及模型
   const removeFile = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
+
+    const fileToDelete: FileItem | undefined = files.find(f =>f.id === id);
+
+    if(fileToDelete && fileToDelete.type === '3d' && onDeleteModel){
+      const modelId = fileToDelete.name.replace(/\.(ifc|frag)$/i, "");
+      onDeleteModel(modelId);
+    }
+
     const updatedFiles = files.filter(f => f.id !== id);
     setFiles(updatedFiles);
     onFilesChange(updatedFiles);
@@ -84,13 +146,13 @@ const ModelUploadSidebar = ({
 
   if (isCollapsed) {
     return (
-      <div className="h-full w-12 bg-[#18181B] border-r border-[#FFFFFF1A] flex flex-col items-center py-4 gap-4 transition-all duration-300">
+      <div className="flex justify-center items-center w-10 h-10 rounded-xl transition-all duration-300">
         <Button
           isIconOnly
           variant="light"
           onPress={() => setIsCollapsed(false)}
           aria-label="Expand sidebar"
-          className="text-white"
+          className="text-white rounded-xl bg-[#3F3F46] transition-all duration-300 shadow-[0px_0px_2px_0px_#000000B2,inset_0px_-4px_4px_0px_#00000040,inset_0px_4px_2px_0px_#FFFFFF33]"
         >
           <PanelLeftOpen size={20} />
         </Button>
@@ -99,10 +161,10 @@ const ModelUploadSidebar = ({
   }
 
   return (
-    <div className="h-full w-72 bg-[#18181B] border-r border-[#FFFFFF1A] flex flex-col transition-all duration-300 overflow-hidden">
+    <div className="shadow-[inset_0px_1px_5px_rgba(255,255,255,0.8),inset_0px_-1px_3px_rgba(0,0,0,0.8)] dark:shadow-[inset_0px_2px_1px_rgba(255,255,245,0.2),inset_0px_-2px_8px_rgba(0,0,0,0.4),0px_25px_50px_-12px_#00000040] rounded-[14px] h-full w-72 bg-[#18181B] flex flex-col transition-all duration-300 overflow-hidden">
       {/* 標題欄 */}
       <div className="p-4 flex justify-between items-center border-b border-[#FFFFFF1A]">
-        <h3 className="text-white font-semibold flex items-center gap-2">
+        <h3 className="font-inter text-[#A1A1AA] flex items-center gap-2">
           <Box size={18} />
           2D/ 3D Models
         </h3>
@@ -111,7 +173,7 @@ const ModelUploadSidebar = ({
           variant="light"
           onPress={() => setIsCollapsed(true)}
           aria-label="Collapse sidebar"
-          className="text-white"
+          className="text-white rounded-xl bg-[#3F3F46] shadow-[0px_0px_2px_0px_#000000B2,inset_0px_-4px_4px_0px_#00000040,inset_0px_4px_2px_0px_#FFFFFF33]"
         >
           <PanelLeftClose size={20} />
         </Button>
@@ -119,15 +181,15 @@ const ModelUploadSidebar = ({
 
       {/* 上傳區域 (Importing) */}
       <div className="p-4">
-        <p className="text-gray-400 text-xs mb-2 uppercase tracking-wider font-bold">Importing</p>
+        <p className="text-[#A1A1AA] font-inter text-xs mb-2 uppercase">Importing</p>
         <div 
           onDragOver={onDragOver}
           onDrop={onDrop}
           onClick={() => fileInputRef.current?.click()}
-          className="border-2 border-dashed border-[#FFFFFF33] rounded-xl p-6 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-[#D70036] transition-colors bg-[#27272A]"
+          className="shadow-[inset_0px_3px_5px_1px_#000000A3,inset_0px_-1px_2px_#00000099,0px_3px_1.8px_#FFFFFF29,0px_-2px_1.9px_#00000040,0px_0px_4px_#FBFBFB3D] rounded-xl p-6 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-[#D70036] transition-colors bg-[#27272A]"
         >
-          <div className="bg-[#3F3F46] p-2 rounded-lg">
-            <Upload size={24} className="text-white" />
+          <div>
+            <FileUp size={32} className="text-white" />
           </div>
           <p className="text-white text-xs text-center">
             Drop your files here or <span className="text-[#D70036] hover:underline">browse</span>
@@ -145,8 +207,18 @@ const ModelUploadSidebar = ({
       </div>
 
       {/* 已載入列表 (Loaded Models) */}
-      <div className="flex-grow overflow-y-auto p-4">
-        <p className="text-gray-400 text-xs mb-2 uppercase tracking-wider font-bold">Loaded Models</p>
+      <div className="flex-grow overflow-y-auto p-4 border-t border-[#FFFFFF1A]">
+        <div className='flex items-center justify-between px-2'>
+          <p className="font-inter text-[#A1A1AA] text-xs mb-2 uppercase">Loaded Models</p>
+          <button
+            onClick={(e)=>{e.preventDefault(); onFocusAllModel();}}
+            aria-label={`Focus whole`}
+            className=" hover:text-white transition-opacity"
+            >
+            <Focus size={14}/>
+          </button>
+        </div>
+        
         <div className="flex flex-col gap-2">
           {files.length === 0 ? (
             <p className="text-gray-500 text-xs italic text-center mt-4">No models loaded yet</p>
@@ -163,6 +235,20 @@ const ModelUploadSidebar = ({
               >
                 {fileItem.type === '3d' ? <Box size={18} /> : <FileText size={18} />}
                 <span className="text-xs truncate flex-grow">{fileItem.name}</span>
+                <button
+                  onClick={(e) => focusModel(fileItem.id, e)}
+                  aria-label={`Focus ${fileItem.name}`}
+                  className="opacity-0 group-hover:opacity-100 hover:text-white transition-opacity"
+                  >
+                  <Focus size={14}/>
+                </button>
+                <button
+                  onClick={(e) => exportFile(fileItem.id, e)}
+                  aria-label={`export ${fileItem.name}`}
+                  className="opacity-0 group-hover:opacity-100 hover:text-white transition-opacity"
+                  >
+                  <Download size={14}/>
+                </button>
                 <button
                   onClick={(e) => removeFile(fileItem.id, e)}
                   aria-label={`Remove ${fileItem.name}`}

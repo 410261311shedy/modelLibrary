@@ -3,7 +3,6 @@ import { Geist, Geist_Mono, Inter, Almarai,ABeeZee } from "next/font/google";
 import "./globals.css";
 import {Providers} from './providers';
 import ThemeProvider from "@/context/Theme";
-import Navbarhead from "@/components/navbar/Navbarhead";
 import { SessionProvider } from "next-auth/react";
 
 import { auth } from  "../auth"; // 引用您在 auth.ts 中導出的 auth 函數，並重新命名以避免潛在衝突

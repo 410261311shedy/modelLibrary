@@ -1,18 +1,21 @@
 'use client'
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import SidebarUpload from '@/components/sidebar/SidebarUpload';
 import SidebarBlobs from '@/components/blobs/SidebarBlobs';
 import Viewer3D, { Viewer3DRef } from '@/components/viewer/Viewer3D';
 import PDFViewer from '@/components/viewer/PDFViewer';
 import ModelUploadSidebar from '@/components/sidebar/ModelUploadSidebar';
 import MetadataForm from '@/components/forms/MetadataForm';
+import BackgroundBlobs from '@/components/blobs/BackgroundBlobs';
+import { div } from 'framer-motion/client';
+import { Loader2 } from 'lucide-react';
 
 // 定義檔案項目介面
-interface FileItem {
-  id: string;
-  file: File;
-  type: '3d' | 'pdf';
-  name: string;
+export interface FileItem {
+    id: string;
+    file: File;
+    type: '3d' | 'pdf';
+    name: string;
 }
 
 const Upload = () => {
@@ -20,8 +23,17 @@ const Upload = () => {
     const [uploadedFiles, setUploadedFiles] = useState<FileItem[]>([]);
     const [selectedFile, setSelectedFile] = useState<FileItem | null>(null);
     const [coverImage, setCoverImage] = useState<string | null>(null);
-    
+    const [IFCProcessingStatus, setIFCProcessingStatus] = useState<{
+        isIFCProcessing: boolean;
+        fileName: string | null;
+    }>({ isIFCProcessing: false, fileName: null });
+
     const viewerRef = useRef<Viewer3DRef>(null);
+
+    //for breaking infinite rendering in viewer3D syncModels
+    const handleIFCProcessingChange = useCallback((isIFCProcessing:boolean,fileName: string | null) => {
+        setIFCProcessingStatus({isIFCProcessing,fileName});
+    }, []);
 
     // 處理下一步按鈕
     const handleNextButton = () => {
@@ -53,13 +65,38 @@ const Upload = () => {
     };
 
     // 處理上一步按鈕
-    const handleBackButton = () => setStep((prev) => Math.max(prev - 1, 1));
+    const handleBackButton = () => {
+        if(step === 1){
 
+        }
+
+        setStep((prev) => Math.max(prev - 1, 1));
+    };
+    console.log(`選擇file:${selectedFile?.name}`);
+    console.log(uploadedFiles.map((a)=>(a.name)));
     return (
-    <div className='min-h-screen bg-[#27272A] relative '>
+    <div className='min-h-screen bg-[#27272A] relative'>
+        {/* 全螢幕遮罩：當 isIFCProcessing 為 true 時顯示 */}
+        {IFCProcessingStatus.isIFCProcessing && (
+            <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center">
+                <div className="bg-[#18181B] p-8 rounded-2xl shadow-2xl border border-[#FFFFFF1A] flex flex-col items-center gap-4">
+                    <Loader2 size={48} className="animate-spin text-[#D70036]" />
+                    <div className="text-center">
+                        <h3 className="text-white font-bold text-lg">正在解析模型中...</h3>
+                        <p className="text-gray-400 text-sm">請勿關閉視窗或進行其他操作</p>
+                        {/* 顯示目前處理的檔名 */}
+                        {IFCProcessingStatus.fileName && (
+                            <p className="text-[#D70036] text-xs mt-4 font-mono bg-[#D70036]/10 px-3 py-1 rounded-full">
+                                Processing: {IFCProcessingStatus.fileName}
+                            </p>
+                        )}
+                    </div>
+                </div>
+            </div>
+        )}
         <div className='flex w-full h-screen gap-4 p-2 '>
             {/* 左側步驟導覽列 */}
-            <div className='relative overflow-hidden rounded-lg border-[5px] border-[#FFFFFF29] shrink-0'>
+            <div className='relative overflow-hidden rounded-lg border-[5px] border-[rgba(40,48,62,0.6)] shrink-0'>
                 <SidebarBlobs/>
                 {/* 建立一個絕對定位的層，專門放陰影，並確保它在背景之上 */}
                 <div className='absolute inset-0 pointer-events-none shadow-[inset_0px_0px_27.1px_0px_#000000] z-10'/>
@@ -69,42 +106,39 @@ const Upload = () => {
                     onBack={handleBackButton}
                 />
             </div>
-
-            {/* 中間內容區域：包含模型上傳側邊欄與 Viewer */}
-            <div className='flex-grow flex gap-4 overflow-hidden'>
-                {/* Step 1 特有的模型上傳側邊欄 */}
-                {step === 1 && (
-                    <div className='shrink-0 h-full rounded-lg overflow-hidden border-[5px] border-[#FFFFFF29] relative'>
-                        <ModelUploadSidebar 
-                            onFilesChange={setUploadedFiles}
-                            onSelectFile={setSelectedFile}
-                            selectedFileId={selectedFile?.id || null}
-                        />
-                    </div>
-                )}
-
+            
                 {/* 右側 Viewer 區域 */}
-                <div className='relative rounded-lg bg-[#18181B] flex-grow overflow-hidden border-[5px] border-[#FFFFFF29]'>
+            
+            <div className='flex grow rounded-lg overflow-hidden p-1'>{/*p-1 for showing the outer shadow*/}
+                <div className='relative rounded-lg bg-[#18181B] grow shadow-[0px_3px_1.8px_0px_#FFFFFF29,0px_-2px_1.9px_0px_#00000040,0px_0px_4px_0px_#FBFBFB3D]'>
                     {/* 內凹陰影裝飾層 */}
-                    <div className='absolute inset-0 z-10 rounded-lg pointer-events-none shadow-[inset_0px_3px_5px_1px_#000000A3,inset_0px_-1px_2px_0px_#00000099,0px_3px_1.8px_0px_#FFFFFF29,0px_-2px_1.9px_0px_#00000040,0px_0px_4px_0px_#FBFBFB3D]'/>
-                    
+                    <div className='absolute inset-0 z-50 rounded-lg pointer-events-none shadow-[inset_0px_3px_5px_1px_#000000A3,inset_0px_-1px_2px_0px_#00000099]'/>
                     {/* 根據步驟與檔案類型渲染內容 */}
-                    <div className='w-full h-full'>
-                        {step === 1 && (
-                            <>
-                                {(!selectedFile || selectedFile.type === '3d') ? (
-                                    <Viewer3D ref={viewerRef} file={selectedFile?.file} />
-                                ) : (
-                                    <PDFViewer file={selectedFile.file} />
-                                )}
-                            </>
-                        )}
+                    <div className='rounded-lg w-full h-full overflow-hidden relative'>
+                        <div className={`absolute inset-0 ${step === 3 ? "hidden":"block"}`} >
+                                    {(!selectedFile || selectedFile.type === '3d') ? (
+                                        <Viewer3D ref={viewerRef} allFiles={uploadedFiles} file={selectedFile?.file} onIFCProcessingChange={handleIFCProcessingChange} />
+                                    ) : (
+                                        <PDFViewer file={selectedFile.file} />
+                                    )}
+                        </div>
+                        <div className={`absolute left-2 top-[5%] h-[90%] ${(step === 2 || step === 3 )? "hidden":"block"}`}>
+                                    <ModelUploadSidebar 
+                                        onFilesChange={setUploadedFiles}
+                                        onSelectFile={setSelectedFile}
+                                        selectedFileId={selectedFile?.id || null}
+                                        onFocusAllModel={()=>viewerRef.current?.focusAllModel()}
+                                        onFocusModel={(modelId) => viewerRef.current?.focusModel(modelId)}
+                                        onExportModelFrag={(modelId) => viewerRef.current?.exportModelFrag(modelId)}
+                                        onDeleteModel={(modelId) => viewerRef.current?.deleteModel(modelId)}
+                                    />
+                        </div>
                         {step === 2 && (
-                            <div className='w-full h-full flex items-center justify-center text-white relative'>
-                                <Viewer3D ref={viewerRef} file={selectedFile?.file} />
+                            <div className='w-full h-full flex items-center justify-center text-white relative pointer-events-none'>
+                                
                                 {/* 封面擷取範圍框 (紅色方框) */}
                                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                    <div className="w-[60%] aspect-video border-4 border-red-500 shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]" />
+                                    <div className="w-[100%] rounded-lg aspect-video border-4 border-red-500 shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]" />
                                 </div>
                                 <div className="absolute top-10 text-white bg-black/50 px-4 py-2 rounded-full">
                                     請調整視角，點擊 Next 將擷取紅框範圍作為封面
@@ -112,19 +146,22 @@ const Upload = () => {
                             </div>
                         )}
                         {step === 3 && (
-                            <div className='w-full h-full bg-[#18181B] p-8 overflow-y-auto'>
-                                <h2 className="text-2xl font-bold text-white mb-6">Metadata</h2>
-                                <MetadataForm
-                                    coverImage={coverImage}
-                                    onSubmit={(data) => console.log("Metadata submitted:", data)}
-                                />
+                            <div className='w-full h-full p-8 bg-[#27272A] overflow-y-auto'>
+                                <div className='max-w-[90%] mx-auto w-full font-inter'>
+                                    <h2 className="text-xl text-white">Metadata</h2>
+                                    <p className='text-xs text-[#A1A1AA] mb-2'>Fill in the model metadata make people more understand your model</p>
+                                    <MetadataForm
+                                        coverImage={coverImage}
+                                        onSubmit={(data) => console.log("Metadata submitted:", data)}
+                                    />
+                                </div>
                             </div>
                         )}
                     </div>
                 </div>
             </div>
         </div>
-    </div>  
+    </div> 
     );
 }
 
