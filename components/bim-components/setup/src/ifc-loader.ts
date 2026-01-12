@@ -1,3 +1,4 @@
+
 import * as OBC from "@thatopen/components"
 
 export const setupIfcLoader = (components: OBC.Components)=>{
