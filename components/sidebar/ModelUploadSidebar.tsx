@@ -146,7 +146,7 @@ const ModelUploadSidebar = ({
 
   if (isCollapsed) {
     return (
-      <div className="flex justify-center items-center w-10 h-10 rounded-xl transition-all duration-300">
+      <div className="relative z-50 flex justify-center items-center w-10 h-10 rounded-xl transition-all duration-300">
         <Button
           isIconOnly
           variant="light"
@@ -161,7 +161,7 @@ const ModelUploadSidebar = ({
   }
 
   return (
-    <div className="shadow-[inset_0px_1px_5px_rgba(255,255,255,0.8),inset_0px_-1px_3px_rgba(0,0,0,0.8)] dark:shadow-[inset_0px_2px_1px_rgba(255,255,245,0.2),inset_0px_-2px_8px_rgba(0,0,0,0.4),0px_25px_50px_-12px_#00000040] rounded-[14px] h-full w-72 bg-[#18181B] flex flex-col transition-all duration-300 overflow-hidden">
+    <div className="relative z-30 shadow-[inset_0px_1px_5px_rgba(255,255,255,0.8),inset_0px_-1px_3px_rgba(0,0,0,0.8)] dark:shadow-[inset_0px_2px_1px_rgba(255,255,245,0.2),inset_0px_-2px_8px_rgba(0,0,0,0.4),0px_25px_50px_-12px_#00000040] rounded-[14px] h-full w-72 bg-[#18181B] flex flex-col transition-all duration-300 overflow-hidden">
       {/* 標題欄 */}
       <div className="p-4 flex justify-between items-center border-b border-[#FFFFFF1A]">
         <h3 className="font-inter text-[#A1A1AA] flex items-center gap-2">
@@ -213,12 +213,11 @@ const ModelUploadSidebar = ({
           <button
             onClick={(e)=>{e.preventDefault(); onFocusAllModel();}}
             aria-label={`Focus whole`}
-            className=" hover:text-white transition-opacity"
+            className={`text-white`} 
             >
-            <Focus size={14}/>
+            <Focus size={14} className='mb-3'/>
           </button>
         </div>
-        
         <div className="flex flex-col gap-2">
           {files.length === 0 ? (
             <p className="text-gray-500 text-xs italic text-center mt-4">No models loaded yet</p>
@@ -238,7 +237,7 @@ const ModelUploadSidebar = ({
                 <button
                   onClick={(e) => focusModel(fileItem.id, e)}
                   aria-label={`Focus ${fileItem.name}`}
-                  className="opacity-0 group-hover:opacity-100 hover:text-white transition-opacity"
+                  className={`${fileItem.type === 'pdf' ? "hidden":null} opacity-0 group-hover:opacity-100 hover:text-white transition-opacity`}
                   >
                   <Focus size={14}/>
                 </button>

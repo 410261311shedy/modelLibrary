@@ -4,9 +4,9 @@ import SidebarUpload from '@/components/sidebar/SidebarUpload';
 import SidebarBlobs from '@/components/blobs/SidebarBlobs';
 import Viewer3D, { Viewer3DRef } from '@/components/viewer/Viewer3D';
 import PDFViewer from '@/components/viewer/PDFViewer';
+import { PDFViewerRef } from '@/components/viewer/PDFViewerInternal';
 import ModelUploadSidebar from '@/components/sidebar/ModelUploadSidebar';
 import MetadataForm from '@/components/forms/MetadataForm';
-import BackgroundBlobs from '@/components/blobs/BackgroundBlobs';
 import { div } from 'framer-motion/client';
 import { Loader2 } from 'lucide-react';
 
@@ -29,6 +29,7 @@ const Upload = () => {
     }>({ isIFCProcessing: false, fileName: null });
 
     const viewerRef = useRef<Viewer3DRef>(null);
+    const pdfRef = useRef<PDFViewerRef>(null);
 
     //for breaking infinite rendering in viewer3D syncModels
     const handleIFCProcessingChange = useCallback((isIFCProcessing:boolean,fileName: string | null) => {
@@ -36,10 +37,18 @@ const Upload = () => {
     }, []);
 
     // 處理下一步按鈕
-    const handleNextButton = () => {
-        if (step === 2 && viewerRef.current) {
-            // 在 Step 2 點擊 Next 時擷取封面
-            const screenshot = viewerRef.current.takeScreenshot();
+    const handleNextButton = async () => {
+        if (step === 2) {
+            let screenshot = null;
+            
+            if (selectedFile?.type === 'pdf' && pdfRef.current) {
+                // 處理 PDF 截圖
+                screenshot = await pdfRef.current.takeScreenshot();
+            } else if (viewerRef.current) {
+                // 處理 3D 模型截圖
+                screenshot = viewerRef.current.takeScreenshot();
+            }
+
             if (screenshot) {
                 setCoverImage(screenshot);
                 console.log("封面擷取成功！");
@@ -119,7 +128,7 @@ const Upload = () => {
                                     {(!selectedFile || selectedFile.type === '3d') ? (
                                         <Viewer3D ref={viewerRef} allFiles={uploadedFiles} file={selectedFile?.file} onIFCProcessingChange={handleIFCProcessingChange} />
                                     ) : (
-                                        <PDFViewer file={selectedFile.file} />
+                                        <PDFViewer ref={pdfRef} file={selectedFile.file} />
                                     )}
                         </div>
                         <div className={`absolute left-2 top-[5%] h-[90%] ${(step === 2 || step === 3 )? "hidden":"block"}`}>
@@ -129,7 +138,12 @@ const Upload = () => {
                                         selectedFileId={selectedFile?.id || null}
                                         onFocusAllModel={()=>viewerRef.current?.focusAllModel()}
                                         onFocusModel={(modelId) => viewerRef.current?.focusModel(modelId)}
-                                        onExportModelFrag={(modelId) => viewerRef.current?.exportModelFrag(modelId)}
+                                        onExportModelFrag={async (modelId) => {
+                                            if (viewerRef.current) {
+                                                return viewerRef.current.exportModelFrag(modelId);
+                                            }
+                                            return null;
+                                        }}
                                         onDeleteModel={(modelId) => viewerRef.current?.deleteModel(modelId)}
                                     />
                         </div>
@@ -137,8 +151,8 @@ const Upload = () => {
                             <div className='w-full h-full flex items-center justify-center text-white relative pointer-events-none'>
                                 
                                 {/* 封面擷取範圍框 (紅色方框) */}
-                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                    <div className="w-[100%] rounded-lg aspect-video border-4 border-red-500 shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]" />
+                                <div className="absolute z-30 inset-0 flex items-center justify-center pointer-events-none">
+                                    <div className="w-full h-full rounded-lg aspect-video border-4 border-red-500 shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]" />
                                 </div>
                                 <div className="absolute top-10 text-white bg-black/50 px-4 py-2 rounded-full">
                                     請調整視角，點擊 Next 將擷取紅框範圍作為封面
