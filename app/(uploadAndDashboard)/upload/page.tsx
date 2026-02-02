@@ -6,8 +6,7 @@ import Viewer3D, { Viewer3DRef } from '@/components/viewer/Viewer3D';
 import PDFViewer from '@/components/viewer/PDFViewer';
 import { PDFViewerRef } from '@/components/viewer/PDFViewerInternal';
 import ModelUploadSidebar from '@/components/sidebar/ModelUploadSidebar';
-import MetadataForm from '@/components/forms/MetadataForm';
-import { div } from 'framer-motion/client';
+import MetadataForm, { Metadata } from '@/components/forms/MetadataForm';
 import { Loader2 } from 'lucide-react';
 
 // 定義檔案項目介面
@@ -27,6 +26,17 @@ const Upload = () => {
         isIFCProcessing: boolean;
         fileName: string | null;
     }>({ isIFCProcessing: false, fileName: null });
+
+    // MetadataForm的狀態由父層存取 方便提交跟狀態管理
+    const [metadata, setMetadata] = useState<Metadata>({
+        title: "",
+        category: "",
+        keywords: "",
+        description: "",
+        permission: "standard",
+        team: "",
+        associatedModel: ""
+    });
 
     const viewerRef = useRef<Viewer3DRef>(null);
     const pdfRef = useRef<PDFViewerRef>(null);
@@ -67,6 +77,7 @@ const Upload = () => {
         console.log("正在建立模型卡片...", {
             files: uploadedFiles,
             cover: coverImage,
+            metadata: metadata // 使用最新的 metadata 狀態
             // 這裡之後會從 MetadataForm 取得資料
         });
         // 實作 API 呼叫
@@ -166,7 +177,9 @@ const Upload = () => {
                                     <p className='text-xs text-[#A1A1AA] mb-2'>Fill in the model metadata make people more understand your model</p>
                                     <MetadataForm
                                         coverImage={coverImage}
-                                        onSubmit={(data) => console.log("Metadata submitted:", data)}
+                                        onCoverChange={setCoverImage}
+                                        metadata={metadata}
+                                        onMetadataChange={setMetadata}
                                     />
                                 </div>
                             </div>

@@ -1,0 +1,23 @@
+# --- 安全性 (Security) ---
+# 絕對禁止 AI 讀取的敏感憑證
+.env
+.env.local
+.env.*
+**/*.pem
+**/*.key
+**/*.cert
+**/secrets.js
+
+# --- 資料隱私 (Data Privacy) ---
+# 避免 AI 讀到您的資料庫備份或 Log
+**/*.log
+**/*.sql
+**/*.sqlite
+**/*.db
+
+# --- 效能優化 (Performance) ---
+# 您的 IFC 模型檔案非常大，AI 讀了也沒用，只會浪費 Token
+**/*.ifc
+**/*.obj
+**/*.glb
+**/*.rvt
