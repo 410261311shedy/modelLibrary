@@ -40,12 +40,12 @@ const Home = () => {
 
       {/* 2. 替換掉原本的文字 div */}
       {/* 調整 mt 來控制與上方的距離，w-full 確保寬度 */}
-      <div className='flex flex-col items-center mt-10 w-full overflow-hidden'>
+      <div className='flex flex-col items-center mt-10 w-full overflow-hidden max-sm:hidden'>
           <HeroAnimation/>
       </div>
       
       <div className='mx-auto flex flex-col items-center gap-6 mt-10 border-4 border-red-500 w-[90%]'>
-        <div className=' flex gap-10 items-center w-[95%] border-3 h-35'>
+        <div className='sm:flex max-sm:grid max-sm:grid-flow-row max-sm:grid-cols-4 gap-10 items-center w-[95%] border-3 h-35'>
           {/* buttons query */}
           {itemsQuery.map((item) => {
             const isSelected = isSelectId === item.id;

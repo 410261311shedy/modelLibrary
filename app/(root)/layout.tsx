@@ -5,9 +5,9 @@ const RootLayout = ({children}:{children:ReactNode}) => {
   return (
     <>
       <BackgroundBlobs/>
-      <div style={{backdropFilter:'blur(100px)',}} className="flex flex-col justify-items-center min-h-screen relative z-20">
+      <div className="flex flex-col backdrop-blur-[100px] justify-items-center min-h-screen relative z-20">
           <Navbarhead/>
-        <main className='flex-grow'>
+        <main className='grow'>
           {children}
         </main>
       </div>

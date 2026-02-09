@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from 'react';
-import { Button } from "@heroui/react";
+import { Button,Tooltip } from "@heroui/react";
 import { 
   PanelLeftClose, 
   PanelLeftOpen,
@@ -12,6 +12,8 @@ import {
   Download,
   Focus
 } from 'lucide-react';
+import * as OBC from "@thatopen/components"
+import { useUpload } from "@/context/UploadContext";
 
 interface FileItem {
   id: string;
@@ -42,17 +44,37 @@ const ModelUploadSidebar = ({
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [files, setFiles] = useState<FileItem[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  //從 Context 取得 uppy 實例
+  const { uppy } = useUpload();
 
   // 處理檔案上傳邏輯
   const handleFiles = (uploadedFiles: FileList | null) => {
     if (!uploadedFiles) return;
 
+    // 1. 處理本地狀態 (保持你原本的邏輯，讓 Viewer 可以直接看)
     const newFiles: FileItem[] = Array.from(uploadedFiles).map(file => {
       const extension = file.name.split('.').pop()?.toLowerCase();
       const type = (extension === 'ifc' || extension === 'frag') ? '3d' : 'pdf';
       // testing for telling whether the file loader work
       console.log(`File uploaded: ${file.name}, Extension: .${extension}, Type: ${type}`);
       
+      // 我們只上傳 IFC 檔案 (根據你的需求)
+      if (extension === 'ifc') {
+        try {
+          uppy.addFile({
+            name: file.name, // 使用檔名作為識別
+            type: file.type,
+            data: file,      // 傳入原始 File 物件
+            source: 'Local',
+          });
+          console.log(`[Uppy] 檔案 ${file.name} 已加入上傳佇列`);
+        } catch (err) {
+          // Uppy 如果遇到重複檔案會報錯，這裡攔截避免影響 UI
+          console.warn(`[Uppy] 無法加入檔案 (可能已存在):`, err);
+        }
+      }
+
       return {
         id: Math.random().toString(36).substr(2, 9),
         file,
@@ -65,7 +87,7 @@ const ModelUploadSidebar = ({
     setFiles(updatedFiles);
     onFilesChange(updatedFiles);
 
-    // 👈 關鍵修正：處理完後清空 input 的值
+    // 處理完後清空 input 的值
     if (fileInputRef.current) {
         fileInputRef.current.value = ""; 
     }
@@ -233,28 +255,38 @@ const ModelUploadSidebar = ({
                 }`}
               >
                 {fileItem.type === '3d' ? <Box size={18} /> : <FileText size={18} />}
-                <span className="text-xs truncate flex-grow">{fileItem.name}</span>
-                <button
-                  onClick={(e) => focusModel(fileItem.id, e)}
-                  aria-label={`Focus ${fileItem.name}`}
-                  className={`${fileItem.type === 'pdf' ? "hidden":null} opacity-0 group-hover:opacity-100 hover:text-white transition-opacity`}
+                <Tooltip content={`${fileItem.name}`} placement='bottom'>
+                  <span className="text-xs truncate flex-grow">                    
+                      {fileItem.name}
+                  </span>
+                </Tooltip>
+                <Tooltip content={`Focus`} placement='bottom'>
+                  <button
+                    onClick={(e) => focusModel(fileItem.id, e)}
+                    aria-label={`Focus ${fileItem.name}`}
+                    className={`${fileItem.type === 'pdf' ? "hidden":null} opacity-0 group-hover:opacity-100 hover:text-white transition-opacity`}
+                    >
+                    <Focus size={14}/>
+                  </button>
+                </Tooltip>
+                <Tooltip content={`Download`} placement='bottom'>
+                  <button
+                    onClick={(e) => exportFile(fileItem.id, e)}
+                    aria-label={`export ${fileItem.name}`}
+                    className="opacity-0 group-hover:opacity-100 hover:text-white transition-opacity"
+                    >
+                    <Download size={14}/>
+                  </button>
+                </Tooltip>
+                <Tooltip content={`Remove`} placement='bottom'>
+                  <button
+                    onClick={(e) => removeFile(fileItem.id, e)}
+                    aria-label={`Remove ${fileItem.name}`}
+                    className="opacity-0 group-hover:opacity-100 hover:text-white transition-opacity"
                   >
-                  <Focus size={14}/>
-                </button>
-                <button
-                  onClick={(e) => exportFile(fileItem.id, e)}
-                  aria-label={`export ${fileItem.name}`}
-                  className="opacity-0 group-hover:opacity-100 hover:text-white transition-opacity"
-                  >
-                  <Download size={14}/>
-                </button>
-                <button
-                  onClick={(e) => removeFile(fileItem.id, e)}
-                  aria-label={`Remove ${fileItem.name}`}
-                  className="opacity-0 group-hover:opacity-100 hover:text-white transition-opacity"
-                >
-                  <X size={14} />
-                </button>
+                    <X size={14} />
+                  </button>
+                </Tooltip>
               </div>
             ))
           )}

@@ -44,20 +44,20 @@ const RootLayout=async({children}: {children: React.ReactNode}) =>{
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${almarai.variable} ${abeezee.variable} antialiased`}
       >
-      <SessionProvider session={session}>
-        <ThemeProvider 
-          attribute="class" 
-          defaultTheme="dark"
-          enableSystem={false}
-          disableTransitionOnChange
-        >
-          {/*wrapped the children between ThemeProvider to make sure the theme aplly ot all pages*/}
-            {/* hero ui provider */}
-            <Providers>              
-                {children}
-            </Providers>
-        </ThemeProvider>
-      </SessionProvider>
+        <SessionProvider session={session}>
+          <ThemeProvider 
+            attribute="class" 
+            defaultTheme="dark"
+            enableSystem={false}
+            disableTransitionOnChange
+          >
+            {/*wrapped the children between ThemeProvider to make sure the theme aplly ot all pages*/}
+              {/* hero ui provider */}
+              <Providers>              
+                  {children}
+              </Providers>
+          </ThemeProvider>
+        </SessionProvider>
       </body>
     </html>
   );

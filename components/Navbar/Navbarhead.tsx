@@ -11,10 +11,11 @@ import {
   PopoverProps,
   Avatar,
   Button,
+  addToast
 } from "@heroui/react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname,useRouter } from "next/navigation";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 import SearchBar from "../searchBar/SearchBar";
 import SetLanguageButton from "../SetLanguageButton";
@@ -36,6 +37,7 @@ export default function Navbarhead() {
   const isDark = theme === "dark";
   const [mounted, setMounted] = useState(false);
   const pathName = usePathname();
+  const router = useRouter();
   const { data:session } = useSession();
   // 控制Megamenu是否顯示
   const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
@@ -43,7 +45,6 @@ export default function Navbarhead() {
     setMounted(true);
   }, []);
   if (!mounted) return null; // Avoid SSR issues
-  console.log("Current Navbar theme:", theme);
 
   return (
     <nav className="w-full flex justify-center px-4 mt-4">
@@ -77,8 +78,26 @@ export default function Navbarhead() {
               <NavbarItem>
                 <Button as={Link} href="/" radius="none" disableRipple className={`hover-lift font-inter text-[16px] w-[80px] ${isDark ? "text-white bg-black" : "text-black bg-white"} ${(pathName === "/")?"border-b-2 border-b-red-600":"" }`}>Home</Button>
               </NavbarItem>
-              <NavbarItem isActive>
-                <Button as={Link} href="/upload" radius="none" disableRipple className={`hover-lift font-inter text-[16px] w-[80px] ${isDark ? "text-white bg-black" : "text-black bg-white"} ${(pathName === "/upload")?"border-b-2 border-b-red-600":"" }`}>Upload</Button>
+              <NavbarItem >
+                <Button
+                  onPress={() => {
+                    if(session){
+                      router.push("/upload");
+                    }else{
+                      addToast({
+                        title:"Unauthenticated",
+                        description:"Please sign in first!",
+                        color:"warning",
+                      }) 
+                      router.push("/sign-in");
+                    }
+                  }}
+                  radius="none" 
+                  disableRipple
+                  className={`hover-lift font-inter text-[16px] w-[80px] ${isDark ? "text-white bg-black" : "text-black bg-white"} ${(pathName === "/upload")?"border-b-2 border-b-red-600":"" }`}
+                >
+                  Upload
+                </Button>
               </NavbarItem>
             </NavbarContent>
           </NavbarContent>

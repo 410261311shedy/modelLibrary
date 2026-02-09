@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import SidebarUpload from '@/components/sidebar/SidebarUpload';
 import SidebarBlobs from '@/components/blobs/SidebarBlobs';
 import Viewer3D, { Viewer3DRef } from '@/components/viewer/Viewer3D';
@@ -7,6 +7,7 @@ import PDFViewer from '@/components/viewer/PDFViewer';
 import { PDFViewerRef } from '@/components/viewer/PDFViewerInternal';
 import ModelUploadSidebar from '@/components/sidebar/ModelUploadSidebar';
 import MetadataForm, { Metadata } from '@/components/forms/MetadataForm';
+import { redirect } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 
 // 定義檔案項目介面
@@ -25,7 +26,8 @@ const Upload = () => {
     const [IFCProcessingStatus, setIFCProcessingStatus] = useState<{
         isIFCProcessing: boolean;
         fileName: string | null;
-    }>({ isIFCProcessing: false, fileName: null });
+        progress?:number;
+    }>({ isIFCProcessing: false, fileName: null, progress: undefined });
 
     // MetadataForm的狀態由父層存取 方便提交跟狀態管理
     const [metadata, setMetadata] = useState<Metadata>({
@@ -42,8 +44,8 @@ const Upload = () => {
     const pdfRef = useRef<PDFViewerRef>(null);
 
     //for breaking infinite rendering in viewer3D syncModels
-    const handleIFCProcessingChange = useCallback((isIFCProcessing:boolean,fileName: string | null) => {
-        setIFCProcessingStatus({isIFCProcessing,fileName});
+    const handleIFCProcessingChange = useCallback((isIFCProcessing:boolean,fileName: string | null, progress?:number) => {
+        setIFCProcessingStatus({isIFCProcessing,fileName,progress});
     }, []);
 
     // 處理下一步按鈕
@@ -82,6 +84,8 @@ const Upload = () => {
         });
         // 實作 API 呼叫
         alert("模型卡片建立成功！(API 串接開發中)");
+        redirect('/');
+        
     };
 
     // 處理上一步按鈕
@@ -92,23 +96,41 @@ const Upload = () => {
 
         setStep((prev) => Math.max(prev - 1, 1));
     };
-    console.log(`選擇file:${selectedFile?.name}`);
-    console.log(uploadedFiles.map((a)=>(a.name)));
+    useEffect(() => {
+        console.log(`選擇file:${selectedFile?.name}`);
+        console.log(uploadedFiles.map((a)=>(a.name)));   
+    },[selectedFile,uploadedFiles])
+
     return (
     <div className='min-h-screen bg-[#27272A] relative'>
         {/* 全螢幕遮罩：當 isIFCProcessing 為 true 時顯示 */}
         {IFCProcessingStatus.isIFCProcessing && (
             <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center">
-                <div className="bg-[#18181B] p-8 rounded-2xl shadow-2xl border border-[#FFFFFF1A] flex flex-col items-center gap-4">
-                    <Loader2 size={48} className="animate-spin text-[#D70036]" />
-                    <div className="text-center">
+                {/* upload/page.tsx 中的遮罩區塊 */}
+                <div className="bg-[#18181B] p-8 rounded-2xl shadow-2xl border border-[#FFFFFF1A] flex flex-col items-center gap-6 min-w-[320px]">
+                    <div className="text-center w-full flex flex-col gap-2">
                         <h3 className="text-white font-bold text-lg">正在解析模型中...</h3>
-                        <p className="text-gray-400 text-sm">請勿關閉視窗或進行其他操作</p>
-                        {/* 顯示目前處理的檔名 */}
+                        
+                        {/* 2. 進度條容器：設定背景與寬度 */}
+                        {typeof IFCProcessingStatus.progress === 'number' && (
+                            <div className="w-full bg-white/10 h-2 rounded-full mt-2 overflow-hidden border border-white/5 relative">
+                                {/* 進度條本體 */}
+                                <div 
+                                    className="bg-[#D70036] h-full transition-all duration-100 ease-linear shadow-[0_0_10px_#D70036]"
+                                    style={{ width: `${IFCProcessingStatus.progress}%` }}
+                                />
+                            </div>
+                        )}
+
+                        <p className="text-gray-400 text-xs mt-1">這可能需要幾分鐘，請稍候</p>
+                        
+                        {/* 3. 檔名顯示 */}
                         {IFCProcessingStatus.fileName && (
-                            <p className="text-[#D70036] text-xs mt-4 font-mono bg-[#D70036]/10 px-3 py-1 rounded-full">
-                                Processing: {IFCProcessingStatus.fileName}
-                            </p>
+                            <div className="mt-4">
+                                <p className="text-[#D70036] text-[10px] font-mono bg-[#D70036]/10 px-3 py-1 rounded-full inline-block border border-[#D70036]/20">
+                                    FILE: {IFCProcessingStatus.fileName}
+                                </p>
+                            </div>
                         )}
                     </div>
                 </div>

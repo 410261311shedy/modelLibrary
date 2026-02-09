@@ -6,7 +6,7 @@ export class DataEnhancer extends OBC.Component {
     //bim's components have to be singletons
     //just 1 single instance of them muts exist in the same manager
     static uuid ="eac0cbbd-7740-4329-968d-b2779f16a4bb" as const
-    enable = true;
+    enabled = true;
 
     readonly sources = new FRAGS.DataMap<string,DataEnhancerSource>()
     

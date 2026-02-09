@@ -19,7 +19,7 @@ export interface Viewer3DRef {
 interface Viewer3DProps {
     allFiles: FileItem[];
     file?: File | null;
-    onIFCProcessingChange?: (isProcessing: boolean, fileName: string | null) => void;
+    onIFCProcessingChange?: (isProcessing: boolean, fileName: string | null, progress?:number) => void;
 }
 
 const Viewer3D = forwardRef<Viewer3DRef, Viewer3DProps>(({ allFiles, file, onIFCProcessingChange }, ref) => {
@@ -187,7 +187,18 @@ const Viewer3D = forwardRef<Viewer3DRef, Viewer3DProps>(({ allFiles, file, onIFC
                     const extension = fileItem.name.split('.').pop()?.toLowerCase();
 
                     if (extension === 'ifc') {
-                        await ifcLoader.load(new Uint8Array(buffer), true, modelId);
+                        await ifcLoader.load(new Uint8Array(buffer), true, modelId,{
+                            processData:{
+                                progressCallback:(progress: number) => {
+                                    const ifcConvertPercentage = Math.round(progress * 100);
+                                    console.log(`目前轉換進度: ${ifcConvertPercentage}%`);
+                                    // 使用 requestAnimationFrame 確保這個更新會在瀏覽器繪製幀的空檔執行
+                                    requestAnimationFrame(()=>{
+                                        onIFCProcessingChange?.(true,fileItem.name,ifcConvertPercentage);
+                                    })
+                                }
+                            }
+                        });
                     } 
                     else if (extension === 'frag') {
                         await fragments.core.load(buffer, { modelId });
@@ -198,8 +209,8 @@ const Viewer3D = forwardRef<Viewer3DRef, Viewer3DProps>(({ allFiles, file, onIFC
             }
         } finally {
             // 3. ✅ 關鍵：在 try...finally 的 finally 區塊關閉遮罩
-            // 這樣無論成功或失敗，最後一定會關閉遮罩
-            onIFCProcessingChange?.(false, null);
+            // 這樣無論成功或失敗，最後一定會關閉遮罩,進度歸 0
+            onIFCProcessingChange?.(false, null,0);
         }
     };
         syncModels();

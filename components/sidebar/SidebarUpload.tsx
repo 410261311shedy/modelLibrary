@@ -56,8 +56,7 @@ return (
 
             {/* 右側按鈕：Step 3 時執行 onCreate，其他時候執行 onNext */}
             <Button 
-                    //undefined is "onCreate" replacer
-                onPress={currentStep === 3 ? undefined : onNext}
+                onPress={ onNext}
                 className="font-inter text-white flex-1 bg-[#D70036] shadow-[0px_0px_2px_0px_#000000B2,inset_0px_-4px_4px_0px_#00000040,inset_0px_4px_2px_0px_#FFFFFF33]"
                 >
                 {currentStep === 3 ? "Create" : "Next"}

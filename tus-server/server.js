@@ -1,0 +1,82 @@
+// server.js
+const path = require('path');
+// 嘗試讀取上一層目錄的 .env.local (假設 upload-server 在你的 Next.js 專案裡面)
+// 如果你的資料夾結構不同，請調整 path.resolve 的路徑
+require('dotenv').config({ path: path.resolve(__dirname, '../.env.local') });
+
+const express = require('express');
+const cors = require('cors');
+const { Server } = require('@tus/server');
+const { S3Store } = require('@tus/s3-store');
+const { S3Client } = require('@aws-sdk/client-s3');
+
+const app = express();
+const PORT = 3003; // 我們讓這個服務跑在 3003 port
+const HOST = '0.0.0.0';
+
+// // 1. 設定 S3 (MinIO) 客戶端
+// const s3Client = new S3Client({
+    
+//     endpoint: process.env.S3_ENDPOINT ,
+//     credentials: {
+//         accessKeyId: process.env.S3_ACCESS_KEY,
+//         secretAccessKey: process.env.S3_SECRET_KEY,
+//     },
+//     forcePathStyle: true, // MinIO 必須設為 true
+// });
+
+// 2. 設定 Tus 儲存方式 (存到 MinIO)
+// 新版的 @tus/s3-store 中，你通常不需要手動 new S3Client() 再傳進去，
+// 而是直接在 s3ClientConfig 物件中傳入 AWS 的設定參數，S3Store 內部會幫你建立 Client
+const store = new S3Store({
+    partSize: 5 * 1024 * 1024, // 設定每個分片 5MB (保護上傳記憶體穩定)
+    s3ClientConfig:{
+        bucket: process.env.S3_IFC_BUCKET,
+        region: process.env.S3_REGION,
+        endpoint: process.env.S3_ENDPOINT ,
+        credentials: {
+            accessKeyId: process.env.S3_ACCESS_KEY,
+            secretAccessKey: process.env.S3_SECRET_KEY,
+        },
+        forcePathStyle: true, // MinIO 必須設為 true
+    } 
+});
+
+// 3. 建立 Tus Server 實例
+const tusServer = new Server({
+    path: '/files',
+    datastore: store,
+    respectForwardedHeaders: true,
+});
+
+// 4. 設定 CORS (關鍵！否則前端會被擋)
+// 這裡我們允許來自 localhost:3000 的請求
+const corsOptions = {
+    origin: 'http://localhost:3000', 
+    methods: ['GET', 'POST', 'PATCH', 'HEAD', 'OPTIONS', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Location', 'Tus-Resumable', 'Upload-Length', 'Upload-Metadata', 'Upload-Offset', 'Upload-Protocol', 'X-HTTP-Method-Override', 'Authorization'],
+    exposedHeaders: ['Tus-Resumable', 'Upload-Length', 'Upload-Metadata', 'Upload-Offset', 'Upload-Protocol', 'Location', 'Upload-Expires'],
+};
+
+app.use(cors(corsOptions));
+
+// 5. 掛載上傳路由
+// 注意：Tus 需要處理 HEAD, PATCH, POST 等請求，所以用 app.all
+// 處理 "建立上傳" (POST /files)
+app.all(/\/files/, (req, res) => {
+    tusServer.handle(req, res);
+});
+
+// 處理 "後續操作" (PATCH/HEAD/DELETE /files/xxxx)
+app.all(/\/files.*/, (req, res) => {
+    tusServer.handle(req, res);
+});
+
+// 6. 啟動伺服器
+app.listen(PORT, HOST, () => {
+    console.log(`--------------------------------------------------`);
+    console.log(`🚀 Upload Server is running on http://localhost:${PORT}`);
+    console.log(`📂 Connecting to MinIO at: ${process.env.S3_ENDPOINT}`);
+    console.log(`📦 Target Bucket: ${process.env.S3_BUCKET }`);
+    console.log(`--------------------------------------------------`);
+});
