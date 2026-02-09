@@ -187,18 +187,19 @@ const Viewer3D = forwardRef<Viewer3DRef, Viewer3DProps>(({ allFiles, file, onIFC
                     const extension = fileItem.name.split('.').pop()?.toLowerCase();
 
                     if (extension === 'ifc') {
-                        await ifcLoader.load(new Uint8Array(buffer), true, modelId,{
-                            processData:{
-                                progressCallback:(progress: number) => {
-                                    const ifcConvertPercentage = Math.round(progress * 100);
-                                    console.log(`目前轉換進度: ${ifcConvertPercentage}%`);
-                                    // 使用 requestAnimationFrame 確保這個更新會在瀏覽器繪製幀的空檔執行
-                                    requestAnimationFrame(()=>{
-                                        onIFCProcessingChange?.(true,fileItem.name,ifcConvertPercentage);
-                                    })
-                                }
-                            }
-                        });
+                        // await ifcLoader.load(new Uint8Array(buffer), true, modelId,{
+                        //     processData:{
+                        //         progressCallback:(progress: number) => {
+                        //             const ifcConvertPercentage = Math.round(progress * 100);
+                        //             console.log(`目前轉換進度: ${ifcConvertPercentage}%`);
+                        //             // 使用 requestAnimationFrame 確保這個更新會在瀏覽器繪製幀的空檔執行
+                        //             requestAnimationFrame(()=>{
+                        //                 onIFCProcessingChange?.(true,fileItem.name,ifcConvertPercentage);
+                        //             })
+                        //         }
+                        //     }
+                        // });
+                        console.log(`[Viewer3D] 收到 IFC 檔案 ${fileItem.name}，跳過前端載入，等待後端轉檔為 FRAG。`);
                     } 
                     else if (extension === 'frag') {
                         await fragments.core.load(buffer, { modelId });
