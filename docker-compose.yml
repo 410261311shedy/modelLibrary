@@ -35,3 +35,5 @@ services:
 volumes:
     pgdata_local:
     minio_data_local:
+
+#執行 docker-compose --env-file .env.local up -d

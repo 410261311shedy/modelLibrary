@@ -3,27 +3,22 @@ const path = require('path');
 // 嘗試讀取上一層目錄的 .env.local (假設 upload-server 在你的 Next.js 專案裡面)
 // 如果你的資料夾結構不同，請調整 path.resolve 的路徑
 require('dotenv').config({ path: path.resolve(__dirname, '../.env.local') });
+console.log("DEBUG: S3_IFC_BUCKET =", process.env.S3_IFC_BUCKET); // 👈 檢查這行有沒有印出東西
+
 
 const express = require('express');
 const cors = require('cors');
-const { Server } = require('@tus/server');
+const { Server,EVENTS } = require('@tus/server');
 const { S3Store } = require('@tus/s3-store');
 const { S3Client } = require('@aws-sdk/client-s3');
+const axios = require('axios');
 
 const app = express();
 const PORT = 3003; // 我們讓這個服務跑在 3003 port
 const HOST = '0.0.0.0';
 
-// // 1. 設定 S3 (MinIO) 客戶端
-// const s3Client = new S3Client({
-    
-//     endpoint: process.env.S3_ENDPOINT ,
-//     credentials: {
-//         accessKeyId: process.env.S3_ACCESS_KEY,
-//         secretAccessKey: process.env.S3_SECRET_KEY,
-//     },
-//     forcePathStyle: true, // MinIO 必須設為 true
-// });
+
+const WORKER_WEBHOOK_URL = 'http://localhost:3005/webhook/convert';
 
 // 2. 設定 Tus 儲存方式 (存到 MinIO)
 // 新版的 @tus/s3-store 中，你通常不需要手動 new S3Client() 再傳進去，
@@ -47,6 +42,39 @@ const tusServer = new Server({
     path: '/files',
     datastore: store,
     respectForwardedHeaders: true,
+});
+
+
+// 監聽「上傳完成」事件
+tusServer.on(EVENTS.POST_FINISH, (req, res, upload) => {
+    const fileId = upload.id;
+    // 取得檔名 (Uppy 預設會把檔名放在 metadata.filename)
+    const fileName = upload.metadata?.filename;
+
+    if (fileName) {
+        console.log(`✅ [Tus] 上傳成功: ${fileName}(ID: ${fileId})`);
+        
+        // 只有 IFC 檔案才通知 Worker
+        if (fileName.toLowerCase().endsWith('.ifc')) {
+            console.log(`📞 [Tus] 正在通知 Worker 處理: ${fileName}...`);
+            
+            axios.post(WORKER_WEBHOOK_URL, { 
+                    fileKey: fileId,   // 用這個去下載
+                    fileName: fileName // 用這個來命名轉好的 Frag 
+                })
+                .then(() => {
+                    console.log(`📨 [Tus] 通知 Worker 成功！`);
+                })
+                .catch((err) => {
+                    console.error(`⚠️ [Tus] 通知 Worker 失敗 (但上傳已完成):`);
+                    console.error(`   URL: ${WORKER_WEBHOOK_URL}`);
+                    console.error(`   Error: ${err.message}`);
+                    if (err.response) {
+                        console.error(`   Response: ${err.response.status} ${err.response.data}`);
+                    }
+                });
+        }
+    }
 });
 
 // 4. 設定 CORS (關鍵！否則前端會被擋)
@@ -77,6 +105,7 @@ app.listen(PORT, HOST, () => {
     console.log(`--------------------------------------------------`);
     console.log(`🚀 Upload Server is running on http://localhost:${PORT}`);
     console.log(`📂 Connecting to MinIO at: ${process.env.S3_ENDPOINT}`);
-    console.log(`📦 Target Bucket: ${process.env.S3_BUCKET }`);
+    console.log(`📦 Target Bucket: ${process.env.S3_IFC_BUCKET }`);
+    console.log(`🔗 Worker Webhook Target: ${WORKER_WEBHOOK_URL}`);
     console.log(`--------------------------------------------------`);
 });
