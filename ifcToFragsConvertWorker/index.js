@@ -45,7 +45,7 @@ async function processFile(fileKey, fileName) {
     console.log(`🚀 [Worker] 開始處理: ${fileName} (Key: ${fileKey})`);
     
     try {
-        // A. 下載 IFC
+        // 下載 IFC
         console.log(`⬇️ [MinIO] 正在下載...`);
         const fileStream = await minioClient.getObject(IFC_BUCKET, fileKey);
         const chunks = [];
@@ -55,11 +55,10 @@ async function processFile(fileKey, fileName) {
         }
         
         const fileBuffer = Buffer.concat(chunks);
-        // const ifcUint8Array = new Uint8Array(fileBuffer);
         
         console.log(`📦 [Worker] 下載完成，大小: ${(fileBuffer.length / 1024 / 1024).toFixed(2)} MB`);
 
-        // B. 執行轉換
+        // 執行轉換
         console.log(`⚙️ [Convert] 開始轉檔 (.frag)...`);
         const start = performance.now();
         
@@ -69,7 +68,7 @@ async function processFile(fileKey, fileName) {
         const duration = (performance.now() - start) / 1000;
         console.log(`✅ [Convert] 轉檔成功！耗時: ${duration.toFixed(2)}s`);
 
-        // C. 上傳 .frag
+        // 上傳 .frag
         const fragKey = fileKey + '.frag'; 
         const fragBuffer = Buffer.from(modelData);
 
@@ -83,9 +82,32 @@ async function processFile(fileKey, fileName) {
 
         console.log(`🎉 [Done] 任務完成！`);
 
+        // 通知tus server (socket hub)
+        await fetch('http://localhost:3003/notify/done', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                fileKey: fileKey,
+                fileName: fileName,
+                status: 'success'
+            })
+        });
+        console.log(`📞 [Worker] 已通知 Tus Server 廣播消息`);
+
     } catch (err) {
         console.error(`❌ [Error] 處理失敗: ${fileName}`);
         console.error(err);
+        // 通知tus server 失敗也要通知
+        await fetch('http://localhost:3003/notify/done', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                fileKey: fileKey,
+                fileName: fileName,
+                status: 'error',
+                message: err.message
+            })
+        }).catch(e => console.error("無法通知 Server:", e));
     }
 }
 

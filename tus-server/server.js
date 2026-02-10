@@ -12,15 +12,46 @@ const { Server,EVENTS } = require('@tus/server');
 const { S3Store } = require('@tus/s3-store');
 const { S3Client } = require('@aws-sdk/client-s3');
 const axios = require('axios');
+const http = require('http');
+const {Server: SocketServer} = require('socket.io')
 
 const app = express();
+// 建立 HTTP Server (為了綁定 WebSocket)
+const server = http.createServer(app);
+
+// 設定 CORS (關鍵！否則前端會被擋)
+// 這裡我們允許來自 localhost:3000 的請求
+const corsOptions = {
+    origin: '*', 
+    methods: ['GET', 'POST', 'PATCH', 'HEAD', 'OPTIONS', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Location', 'Tus-Resumable', 'Upload-Length', 'Upload-Metadata', 'Upload-Offset', 'Upload-Protocol', 'X-HTTP-Method-Override', 'Authorization'],
+    exposedHeaders: ['Tus-Resumable', 'Upload-Length', 'Upload-Metadata', 'Upload-Offset', 'Upload-Protocol', 'Location', 'Upload-Expires'],
+};
+
+app.use(cors(corsOptions));
+
+// 讓 Express 支援 JSON 解析 (為了接收 Worker 的通知)
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// 初始化 Socket.io
+const io = new SocketServer(server, {
+    cors: {
+        origin: "*", // 允許前端連線
+        methods: ["GET", "POST"]
+    }
+});
+
+// 監聽 Socket 連線 (Debug 用)
+io.on('connection', (socket) => {
+    console.log(`🔌 [Socket] 前端已連線: ${socket.id}`);
+});
+
 const PORT = 3003; // 我們讓這個服務跑在 3003 port
 const HOST = '0.0.0.0';
-
-
 const WORKER_WEBHOOK_URL = 'http://localhost:3005/webhook/convert';
 
-// 2. 設定 Tus 儲存方式 (存到 MinIO)
+// 設定 Tus 儲存方式 (存到 MinIO)
 // 新版的 @tus/s3-store 中，你通常不需要手動 new S3Client() 再傳進去，
 // 而是直接在 s3ClientConfig 物件中傳入 AWS 的設定參數，S3Store 內部會幫你建立 Client
 const store = new S3Store({
@@ -37,13 +68,39 @@ const store = new S3Store({
     } 
 });
 
-// 3. 建立 Tus Server 實例
+// 建立 Tus Server 實例
 const tusServer = new Server({
     path: '/files',
     datastore: store,
     respectForwardedHeaders: true,
 });
 
+// 先定義 API 路由 (給 Worker 用的)
+// 這樣可以確保 Tus 的 handle 不會對這個請求造成任何干擾
+app.post('/notify/done', (req, res) => {
+    // Debug 用：印出收到的東西，確認 body 是否存在
+    console.log("📨 [Debug] /notify/done headers:", req.headers['content-type']);
+    console.log("📨 [Debug] /notify/done body:", req.body);
+    // 防呆：如果 body 還是 undefined (極端情況)，手動處理或報錯
+    if (!req.body) {
+        console.error("❌ [Error] req.body is undefined!");
+        return res.status(400).json({ error: "No body received" });
+    }
+    const {  fileKey, fileName, status, message } = req.body;
+    
+    console.log(`📣 [Tus] 收到 Worker 完成通知: ${fileName} (${status})`);
+
+    // 透過 WebSocket 通知前端
+    io.emit('conversion-complete', {
+        fileName:fileName,
+        fileId: fileKey,
+        status: status, // 'success' or 'error'
+        message: message,
+        fragUrl: `/frags/${fileKey}.frag` // 假設你有對應的下載路由
+    });
+
+    res.json({ received: true });
+});
 
 // 監聽「上傳完成」事件
 tusServer.on(EVENTS.POST_FINISH, (req, res, upload) => {
@@ -77,35 +134,20 @@ tusServer.on(EVENTS.POST_FINISH, (req, res, upload) => {
     }
 });
 
-// 4. 設定 CORS (關鍵！否則前端會被擋)
-// 這裡我們允許來自 localhost:3000 的請求
-const corsOptions = {
-    origin: 'http://localhost:3000', 
-    methods: ['GET', 'POST', 'PATCH', 'HEAD', 'OPTIONS', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Location', 'Tus-Resumable', 'Upload-Length', 'Upload-Metadata', 'Upload-Offset', 'Upload-Protocol', 'X-HTTP-Method-Override', 'Authorization'],
-    exposedHeaders: ['Tus-Resumable', 'Upload-Length', 'Upload-Metadata', 'Upload-Offset', 'Upload-Protocol', 'Location', 'Upload-Expires'],
-};
-
-app.use(cors(corsOptions));
-
-// 5. 掛載上傳路由
+// 掛載上傳路由
 // 注意：Tus 需要處理 HEAD, PATCH, POST 等請求，所以用 app.all
 // 處理 "建立上傳" (POST /files)
-app.all(/\/files/, (req, res) => {
-    tusServer.handle(req, res);
-});
-
 // 處理 "後續操作" (PATCH/HEAD/DELETE /files/xxxx)
 app.all(/\/files.*/, (req, res) => {
     tusServer.handle(req, res);
 });
 
-// 6. 啟動伺服器
-app.listen(PORT, HOST, () => {
+// 啟動伺服器
+server.listen(PORT, HOST, () => {
     console.log(`--------------------------------------------------`);
-    console.log(`🚀 Upload Server is running on http://localhost:${PORT}`);
     console.log(`📂 Connecting to MinIO at: ${process.env.S3_ENDPOINT}`);
     console.log(`📦 Target Bucket: ${process.env.S3_IFC_BUCKET }`);
     console.log(`🔗 Worker Webhook Target: ${WORKER_WEBHOOK_URL}`);
+    console.log(`🚀 Tus Server + Socket running on http://localhost:${PORT}`);
     console.log(`--------------------------------------------------`);
 });
