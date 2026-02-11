@@ -1,0 +1,67 @@
+// prisma/schema/main.prisma
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// 共用的 Enum 建議放在這裡，或者跟隨主要使用的 Model
+enum ProcessStatus {
+  uploading
+  processing
+  completed
+  error
+}
+
+// prisma/schema/model.prisma
+
+model Model {
+  id       String @id @default(uuid())
+  shortId  String @unique // 用於分享的短 ID
+  name     String // 原始檔名
+  fileId   String @unique // MinIO / Tus ID (關鍵關聯)
+  uploader String // 上傳者 (User ID)
+  size     Int    @default(0) // 檔案大小 (bytes)
+
+  status       ProcessStatus @default(uploading)
+  errorMessage String?
+
+  // 關聯：Prisma 會自動跨檔案識別 Post 模型
+  posts Post[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// prisma/schema/post.prisma
+
+model Post {
+  id       String @id @default(uuid())
+  shortId  String @unique
+  title    String
+  category String
+  type     String
+
+  // PostgreSQL 的原生陣列功能
+  keywords   String[]
+  coverImage String
+  images     String[]
+
+  // 關聯到 Model (3D 檔案)
+  modelId String
+  model   Model  @relation(fields: [modelId], references: [id])
+
+  // 相關文章 ID (簡易關聯)
+  relatedPosts String[]
+
+  permission String
+  author     String
+  team       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
