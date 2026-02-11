@@ -31,9 +31,27 @@ services:
             - minio_data_local:/data # 檔案存檔位置
         restart: always
 
+
+#=================
+# Redis
+#=================
+    redis:
+        container_name: redis-local
+        image: redis:alpine #輕量版
+        ports:
+            - "6379:6379" # 讓你的 worker.js 可以透過 localhost:6379 連線
+        # 開啟 AOF 持久化，防止重開機後 Queue 裡的任務消失
+        command: redis-server --appendonly yes #開啟 AOF (Append Only File)，讓 Redis 把資料寫入硬碟。這樣如果你的電腦重開機，排隊中的轉檔任務不會消失。
+        volumes:
+            - redis_data_local:/data
+        restart: always
+
+
 # 確保資料不會因為重開機消失
+# 資料持久化到 Docker Volum
 volumes:
     pgdata_local:
     minio_data_local:
-
+    redis_data_local:
 #執行 docker-compose --env-file .env.local up -d
+#-d means Detached mode 在背景執行這些容器，不要佔用我的終端機（Terminal）畫面

@@ -26,30 +26,29 @@ export const FloatingProgress = () => {
                 Uploads ({filesList.length})
                 </span>
             </div>
-            <Button 
+            {/* <Button 
                 size="sm" 
                 variant="light" 
                 color="danger" 
                 className="h-6 min-w-0 px-2 text-xs"
                 onPress={cancelAll}
             >
-                Clear All
-            </Button>
+                Cancel All
+            </Button> */}
             </div>
 
             <CardBody className="p-0 bg-[#18181B]">
-            {/* 使用 ScrollShadow 避免檔案太多時佔滿畫面 */}
-            <ScrollShadow className="max-h-[320px] w-full">
-                <div className="flex flex-col p-2 gap-1">
-                {filesList.map((file) => (
-                    <FileItem 
-                    key={file.uppyId} 
-                    file={file} 
-                    onCancel={() => cancelFile(file.uppyId)} 
-                    />
-                ))}
-                </div>
-            </ScrollShadow>
+                {/* 使用 ScrollShadow 避免檔案太多時佔滿畫面 */}
+                <ScrollShadow className="max-h-[320px] w-full">
+                    <div className="flex flex-col p-2 gap-1">
+                    {filesList.map((file) => (
+                        <FileItem 
+                            key={file.uppyId} 
+                            file={file} 
+                        />
+                    ))}
+                    </div>
+                </ScrollShadow>
             </CardBody>
         </Card>
         </div>
@@ -57,39 +56,39 @@ export const FloatingProgress = () => {
 };
 
 // 單個檔案進度條元件
-const FileItem = ({ file, onCancel }: { file: TrackedFile, onCancel: () => void }) => {
+const FileItem = ({ file }: { file: TrackedFile }) => {
     
     // 根據狀態決定顏色與 Icon
     const getStatusConfig = () => {
         switch (file.status) {
-        case 'uploading':
-            return { 
-            color: "success" as const, 
-            text: `${file.progress}%`,
-            icon: null,
-            isIndeterminate: false
-            };
-        case 'processing':
-            return { 
-            color: "primary" as const, 
-            text: "Converting...",
-            icon: <Loader2 className="animate-spin text-blue-500" size={14} />,
-            isIndeterminate: true // 轉檔時顯示流動動畫
-            };
-        case 'completed':
-            return { 
-            color: "success" as const, 
-            text: "Done",
-            icon: <CheckCircle2 className="text-green-500" size={14} />,
-            isIndeterminate: false
-            };
-        case 'error':
-            return { 
-            color: "danger" as const, 
-            text: "Error",
-            icon: <AlertCircle className="text-red-500" size={14} />,
-            isIndeterminate: false
-            };
+            case 'uploading':
+                return { 
+                color: "success" as const, 
+                text: `${file.progress}%`,
+                icon: null,
+                isIndeterminate: false
+                };
+            case 'processing':
+                return { 
+                color: "primary" as const, 
+                text: `Converting ${file.progress}%`,
+                icon: <Loader2 className="animate-spin text-blue-500" size={14} />,
+                isIndeterminate: false // 轉檔時顯示流動動畫
+                };
+            case 'completed':
+                return { 
+                color: "success" as const, 
+                text: "Done",
+                icon: <CheckCircle2 className="text-green-500" size={14} />,
+                isIndeterminate: false
+                };
+            case 'error':
+                return { 
+                color: "danger" as const, 
+                text: "Error",
+                icon: <AlertCircle className="text-red-500" size={14} />,
+                isIndeterminate: false
+                };
         }
     };
 
@@ -112,21 +111,21 @@ const FileItem = ({ file, onCancel }: { file: TrackedFile, onCancel: () => void 
             </div>
 
             {/* 取消按鈕 (只在非完成狀態顯示) */}
-            {file.status !== 'completed' && (
+            {/* {file.status !== 'completed' && (
                 <button 
-                    onClick={(e) => { e.stopPropagation(); onCancel(); }}
+                    onClick={(e) => { e.stopPropagation(); }}
                     className="text-gray-500 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 ml-1"
                 >
                     <X size={14} />
                 </button>
-            )}
+            )} */}
             </div>
         </div>
 
         {/* 進度條 */}
         <Progress 
             size="sm" 
-            value={file.status === 'processing' ? 100 : file.progress} 
+            value={file.progress} 
             color={config.color}
             isIndeterminate={config.isIndeterminate}
             className="h-1"

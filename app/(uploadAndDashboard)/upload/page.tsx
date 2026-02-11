@@ -100,38 +100,7 @@ const Upload = () => {
         console.log(`選擇file:${selectedFile?.name}`);
         console.log(uploadedFiles.map((a)=>(a.name)));   
     },[selectedFile,uploadedFiles])
-    //  原本下面的 全螢幕遮罩：當 isIFCProcessing 為 true 時顯示
-    //  <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center">
-    //             {/* upload/page.tsx 中的遮罩區塊 */}
-    //             <div className="bg-[#18181B] p-8 rounded-2xl shadow-2xl border border-[#FFFFFF1A] flex flex-col items-center gap-6 min-w-[320px]">
-    //                 <div className="text-center w-full flex flex-col gap-2">
-    //                     <h3 className="text-white font-bold text-lg">正在解析模型中...</h3>
-                        
-    //                     {/* 2. 進度條容器：設定背景與寬度 */}
-    //                     {typeof IFCProcessingStatus.progress === 'number' && (
-    //                         <div className="w-full bg-white/10 h-2 rounded-full mt-2 overflow-hidden border border-white/5 relative">
-    //                             {/* 進度條本體 */}
-    //                             <div 
-    //                                 className="bg-[#D70036] h-full transition-all duration-100 ease-linear shadow-[0_0_10px_#D70036]"
-    //                                 style={{ width: `${IFCProcessingStatus.progress}%` }}
-    //                             />
-    //                         </div>
-    //                     )}
-
-    //                     <p className="text-gray-400 text-xs mt-1">這可能需要幾分鐘，請稍候</p>
-                        
-    //                     {/* 3. 檔名顯示 */}
-    //                     {IFCProcessingStatus.fileName && (
-    //                         <div className="mt-4">
-    //                             <p className="text-[#D70036] text-[10px] font-mono bg-[#D70036]/10 px-3 py-1 rounded-full inline-block border border-[#D70036]/20">
-    //                                 FILE: {IFCProcessingStatus.fileName}
-    //                             </p>
-    //                         </div>
-    //                     )}
-    //                 </div>
-    //             </div>
-    //         </div>
-    //     )}
+    
     return (
     <div className='min-h-screen bg-[#27272A] relative'>
         {/* 全螢幕遮罩：當 isIFCProcessing 為 true 時顯示 */}

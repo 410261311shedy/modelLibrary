@@ -30,6 +30,9 @@ export const UploadProvider = ({ children }: { children: React.ReactNode }) => {
     // 使用物件來儲存狀態，確保可以透過 ID 快速更新
     const [trackedFiles, setTrackedFiles] = useState<Record<string, TrackedFile>>({});
 
+    // 用來快速反查 ID 的 Ref (不會觸發渲染，專門給 Socket 用)
+    const tusIdMap = React.useRef<Record<string,{id:string, name:string}>>({});
+
     // 1. 初始化 Uppy
     const [uppy] = useState(() => {
         const uppyInstance = new Uppy({
@@ -55,24 +58,66 @@ export const UploadProvider = ({ children }: { children: React.ReactNode }) => {
         socket.on("connect", () => {
         console.log("🔌 Socket connected");
         });
+        // 監聽進度更新
+        socket.on("conversion-progress", (data: { fileId: string, progress: number }) => {
+            console.log(`📊 收到進度: ${data.fileId} -> ${data.progress}%`);
 
+            setTrackedFiles((prev) => {
+                // 1. 根據 TusId (fileId) 反查 UppyId
+                const uppyId = Object.keys(prev).find(key => prev[key].tusId === data.fileId);
+                
+                if (!uppyId) return prev;
+
+                // 2. 更新狀態
+                return {
+                    ...prev,
+                    [uppyId]: {
+                        ...prev[uppyId],
+                        status: 'processing', // 確保狀態是轉檔中
+                        progress: data.progress // 🔥 這裡更新進度條！
+                    }
+                };
+            });
+        });
         // 監聽 Worker 完成訊號
         socket.on("conversion-complete", (data: { fileId: string, status: string, message?: string }) => {
             console.log("✅ Socket 收到通知:", data);
 
+            // 先透過 Ref 找到 UppyId (不需要進入 setState 就能找)
+            const uppyId = tusIdMap.current[data.fileId].id;
+            if (!uppyId) {
+                console.warn(`⚠️ 收到通知但找不到對應檔案: TusID=${data.fileId}`);
+                return;
+            }
+            // 在這裡處理副作用 (Toast)，保證只執行一次
+            if (data.status === 'success') {
+                addToast({
+                    title: "轉檔完成",
+                    description: `${tusIdMap.current[data.fileId].name}已準備就緒`, // 這裡暫時拿不到 file.name，稍後說明
+                    color: "success",
+                    timeout: Infinity,
+                });
+                
+                // 3秒後移除
+                setTimeout(() => removeFileFromTracking(uppyId), 3000);
+                
+            } else {
+                addToast({
+                    title: "轉檔失敗",
+                    description: data.message || "未知錯誤",
+                    color: "danger",
+                    timeout: Infinity,
+                });
+            }
+
+            // State Updater 函式（prev => ...）必須是純函式，只能用來計算新的 State
+            // 不能用來執行外部動作（如跳通知、發 API、修改 DOM）。
             setTrackedFiles((prev) => {
-                // 用 data.fileId (TusId) 反查 uppyId
-                const uppyId = Object.keys(prev).find(key => prev[key].tusId === data.fileId);
-                // 如果找不到對應的檔案 (可能已被移除)，就直接返回
-                if (!uppyId) {
-                    console.warn(`⚠️ 收到通知但找不到對應檔案: TusID=${data.fileId}`);
-                    console.warn(`🔍 目前的 TrackedFiles 狀態:`, JSON.stringify(prev, null, 2));
-                    return prev;
-                }
+                const file = prev[uppyId];
 
+                if (!file) return prev; // 防呆
+                
                 const updatedFiles = { ...prev };
-                const file = updatedFiles[uppyId];
-
                 if (data.status === 'success') {
                     // 更新狀態為完成
                     updatedFiles[uppyId] = {
@@ -80,21 +125,6 @@ export const UploadProvider = ({ children }: { children: React.ReactNode }) => {
                         status: 'completed', 
                         progress: 100
                     };
-
-                // 把副作用 (Side Effects) 移到 setTimeout 裡
-                // 這樣可以確保它在當前渲染週期結束後才執行，避開 React 警告
-                setTimeout(()=>{
-                    // HeroUI Toast 通知
-                    addToast({
-                        title: "轉檔完成",
-                        description: `${file.name} 已準備就緒`,
-                        color: "success",
-                        timeout: 5000,
-                    });
-                    //3秒後從追蹤清單中移除
-                    setTimeout(() => removeFileFromTracking(uppyId), 3000);
-                },0);
-
                 } else {
                     // 更新狀態為錯誤
                     updatedFiles[uppyId] = { 
@@ -102,12 +132,6 @@ export const UploadProvider = ({ children }: { children: React.ReactNode }) => {
                         status: 'error', 
                         errorMessage: data.message 
                     };
-                    
-                    addToast({
-                        title: "轉檔失敗",
-                        description: data.message || "未知錯誤",
-                        color: "danger",
-                    });
                 }
             return updatedFiles;
         });
@@ -121,9 +145,9 @@ export const UploadProvider = ({ children }: { children: React.ReactNode }) => {
     // 輔助函式：從 React State 中移除檔案
     const removeFileFromTracking = (uppyId: string) => {
         setTrackedFiles((prev) => {
-        const newState = { ...prev };
-        delete newState[uppyId];
-        return newState;
+            const newState = { ...prev };
+            delete newState[uppyId];
+            return newState;
         });
         // 同步移除 Uppy 內部狀態 (如果還存在)
         try { uppy.removeFile(uppyId); } catch (e) {}
@@ -174,6 +198,9 @@ export const UploadProvider = ({ children }: { children: React.ReactNode }) => {
         const uploadUrlFromTus = file.tus?.uploadUrl;
         const fileid = uploadUrlFromTus?.split('/').pop();
         console.log(`🚀 [Uppy] 提取出fileid${fileid}，提供後續比對使用 填入tusId `);
+        // 紀錄 TusId 對應到的 UppyId
+        if(fileid) tusIdMap.current[fileid] = { id:file.id, name: file.name };
+
         setTrackedFiles(prev => ({
             ...prev,
             [file.id]: { 
@@ -187,23 +214,23 @@ export const UploadProvider = ({ children }: { children: React.ReactNode }) => {
 
         // D. 上傳錯誤
         uppy.on('upload-error', (file, error) => {
-        if (!file) return;
-        setTrackedFiles(prev => ({
-            ...prev,
-            [file.id]: { ...prev[file.id], status: 'error', errorMessage: error.message }
-        }));
-        addToast({ title: "上傳失敗", description: file.name, color: "danger" });
+            if (!file) return;
+            setTrackedFiles(prev => ({
+                ...prev,
+                [file.id]: { ...prev[file.id], status: 'error', errorMessage: error.message }
+            }));
+            addToast({ title: "上傳失敗", description: file.name, color: "danger" });
         });
 
         // E. 檔案被移除 (Cancel)
         uppy.on('file-removed', (file) => {
-        removeFileFromTracking(file.id);
-        });
+            removeFileFromTracking(file.id);
+        }); 
 
-        // F. 全部取消
+        // F. 全部取消 已棄用
         uppy.on('cancel-all', () => {
-        setTrackedFiles({});
-        addToast({ title: "已取消所有任務", color: "default" });
+            setTrackedFiles({});
+            addToast({ title: "已取消所有任務", color: "default" });
         });
 
     }, [uppy]);

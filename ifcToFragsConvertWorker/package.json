@@ -12,10 +12,12 @@
   "type": "module",
   "dependencies": {
     "@thatopen/fragments": "~3.1.0",
+    "bullmq": "^5.67.3",
     "cors": "^2.8.6",
     "dotenv": "^17.2.4",
     "express": "^5.2.1",
     "global-jsdom": "^28.0.0",
+    "ioredis": "^5.9.2",
     "minio": "^8.0.6",
     "web-ifc": "^0.0.74",
     "ws": "^8.19.0"

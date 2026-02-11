@@ -2,7 +2,7 @@
 const path = require('path');
 // 嘗試讀取上一層目錄的 .env.local (假設 upload-server 在你的 Next.js 專案裡面)
 // 如果你的資料夾結構不同，請調整 path.resolve 的路徑
-require('dotenv').config({ path: path.resolve(__dirname, '../.env.local') });
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 console.log("DEBUG: S3_IFC_BUCKET =", process.env.S3_IFC_BUCKET); // 👈 檢查這行有沒有印出東西
 
 
@@ -14,6 +14,8 @@ const { S3Client } = require('@aws-sdk/client-s3');
 const axios = require('axios');
 const http = require('http');
 const {Server: SocketServer} = require('socket.io')
+const { QueueEvents } = require('bullmq'); 
+const IORedis = require('ioredis');
 
 const app = express();
 // 建立 HTTP Server (為了綁定 WebSocket)
@@ -74,7 +76,30 @@ const tusServer = new Server({
     datastore: store,
     respectForwardedHeaders: true,
 });
+// Redis 連線 (給 QueueEvents 用)
+const redisConnection = new IORedis({
+    host: 'localhost',
+    port: 6379,
+    maxRetriesPerRequest: null,
+});
+// 初始化 QueueEvents 監聽器
+// 自動連上 Redis，並監聽 'ifc-conversion-queue' 的所有動靜
+const queueEvents = new QueueEvents('ifc-conversion-queue', { 
+    connection: redisConnection 
+});
+// 監聽「進度更新」事件
+queueEvents.on('progress', ({ jobId, data }) => {
+    // jobId: 我們剛剛強制設成了 fileKey (e.g., 'e97210...')
+    // data: 就是 worker 裡回報的數字 (e.g., 45)
+    
+    // console.log(`📊 [Redis] Job ${jobId} 進度: ${data}%`); // Debug 用
 
+    // 透過 Socket 廣播給前端
+    io.emit('conversion-progress', {
+        fileId: jobId, // 這裡就是 fileKey
+        progress: data
+    });
+});
 // 先定義 API 路由 (給 Worker 用的)
 // 這樣可以確保 Tus 的 handle 不會對這個請求造成任何干擾
 app.post('/notify/done', (req, res) => {
