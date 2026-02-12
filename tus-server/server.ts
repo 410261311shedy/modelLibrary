@@ -13,13 +13,12 @@ import { Server as SocketServer } from 'socket.io';
 import { QueueEvents } from 'bullmq'; 
 import IORedis from 'ioredis';
 import {nanoid} from 'nanoid';
-// import { PrismaClient } from '../prisma/generated/prisma/client';
-// import { PrismaPg } from '@prisma/adapter-pg';
-// // 初始化prisma
-// const adapter = new PrismaPg({connectionString:process.env.POSTGRESDB_URI});
-// const prisma = new PrismaClient({adapter});
+import { PrismaClient } from '../prisma/generated/prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+// 初始化prisma
+const adapter = new PrismaPg({connectionString:process.env.POSTGRESDB_URI});
+const prisma = new PrismaClient({adapter});
 
-import {prisma} from '../lib/prisma';
 
 const app = express();
 // 建立 HTTP Server (為了綁定 WebSocket)

@@ -7,10 +7,8 @@ import cors from 'cors';
 import * as Minio from 'minio';
 import { Job, JobScheduler, Queue, Worker } from 'bullmq';
 import IORedis from 'ioredis';
-// import { PrismaClient } from '../prisma/generated/prisma/client';
-// import { PrismaPg } from '@prisma/adapter-pg';
-
-import {prisma} from '../lib/prisma';
+import { PrismaClient } from '../prisma/generated/prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
 
 // 引入核心套件 (ESM)
 import * as FRAGS from "@thatopen/fragments";
@@ -22,9 +20,9 @@ const __dirname = path.dirname(__filename);
 // 讀取上一層的 .env
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
-// //初始化prisma
-// const adapter = new PrismaPg({ connectionString: process.env.POSTGRESDB_URI});
-// const prisma = new PrismaClient({ adapter });
+//初始化prisma
+const adapter = new PrismaPg({ connectionString: process.env.POSTGRESDB_URI});
+const prisma = new PrismaClient({ adapter });
 
 // === Redis 連線設定 ===
 // 這是 BullMQ 用來連線 Redis 的設定
