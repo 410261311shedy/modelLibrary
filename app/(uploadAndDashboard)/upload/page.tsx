@@ -9,6 +9,7 @@ import ModelUploadSidebar from '@/components/sidebar/ModelUploadSidebar';
 import MetadataForm, { Metadata } from '@/components/forms/MetadataForm';
 import { redirect } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
+import { Model,UIModel } from '@/types/upload';
 
 // 定義檔案項目介面
 export interface FileItem {

@@ -12,3 +12,21 @@ export interface TrackedFile {
     status: FileStatus;
     errorMessage?: string;
 }
+
+export interface Model{
+  id:string,
+  shortId:string,
+  name:string,
+  fileId:string,
+  size:string,
+  status:"uploading" | "processing" | "success" | "error";
+  createdAt:Date | string;
+}
+
+export interface UIModel extends Model {
+  type: '3d' | 'pdf';
+}
+
+export interface UIModel extends Model {
+  type: '3d' | 'pdf';
+}

@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useRef } from 'react';
-import { Button,Tooltip } from "@heroui/react";
+import React, { useState, useRef, useEffect } from 'react';
+import { Button,Tooltip,Spinner } from "@heroui/react";
 import { 
   PanelLeftClose, 
   PanelLeftOpen,
@@ -10,10 +10,15 @@ import {
   X, 
   FileUp,
   Download,
-  Focus
+  Focus,
+  Trash2,
+  CloudDownload,
+  RefreshCw
 } from 'lucide-react';
 import * as OBC from "@thatopen/components"
 import { useUpload } from "@/context/UploadContext";
+import { getUserModels } from '@/lib/actions/model.action';
+import { Model,UIModel } from '../../types/upload';
 
 interface FileItem {
   id: string;
@@ -44,10 +49,45 @@ const ModelUploadSidebar = ({
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [files, setFiles] = useState<FileItem[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+  const [isLoading, setIsLoading] = useState(true);
+  const [completedModels, setCompletedModels] = useState<UIModel[]>([]);
+
   //從 Context 取得 uppy 實例
   const { uppy } = useUpload();
+  // 撈取資料
+  const fetchUserModels = async () => {
+    setIsLoading(true);
+    try {
+      const result = await getUserModels();
+      
+      if (result.success && result.data) {
+        // 將 DB 資料轉換成 FileItem 格式
+        const dbFiles: UIModel[] = result.data.map((model) => {
+          
+          return {
+            id: model.id,
+            shortId: model.shortId,
+            name: model.name,
+            fileId: model.fileId,
+            size: model.size, // 這裡已經是 String 了
+            status: model.status as "uploading" | "processing" | "success" | "error",
+            createdAt: model.createdAt, // 這裡通常是 Date 或 ISO String
+            type: "3d",
+          };
+        });
 
+        setCompletedModels(dbFiles);
+        // 如果需要同步給父層，也可以在這裡呼叫 onFilesChange(dbFiles);
+      }
+    } catch (error) {
+      console.error("Error loading models:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  useEffect(() => {
+    fetchUserModels();
+  }, []); // 空陣列代表只在掛載時執行一次
   // 處理檔案上傳邏輯
   const handleFiles = (uploadedFiles: FileList | null) => {
     if (!uploadedFiles) return;
@@ -109,34 +149,7 @@ const ModelUploadSidebar = ({
     
 
   }
-  const exportFile = async(id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-
-    //find the file
-    const fileItem = files.find(f => f.id === id);
-
-    if(fileItem && fileItem.type === '3d' && onExportModelFrag){
-      //get model id
-      const modelId = fileItem.name.replace(/\.(ifc|frag)$/i, "");
-
-      //call exportModel to get the Uint8Array
-      const fragsBuffer = await onExportModelFrag(modelId);
-
-      if(fragsBuffer){
-
-        const file = new File([fragsBuffer], `${modelId}.frag`);    
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(file);
-        a.download = file.name;
-        a.click();
-        URL.revokeObjectURL(a.href);
-
-        console.log(`模型 ${modelId} 匯出成功`);
-      } else {
-        console.error("無法取得模型數據");
-      }
-    }
-  }
+  
   // 移除檔案以及模型
   const removeFile = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -232,59 +245,77 @@ const ModelUploadSidebar = ({
       <div className="flex-grow overflow-y-auto p-4 border-t border-[#FFFFFF1A]">
         <div className='flex items-center justify-between px-2'>
           <p className="font-inter text-[#A1A1AA] text-xs mb-2 uppercase">Loaded Models</p>
-          <button
-            onClick={(e)=>{e.preventDefault(); onFocusAllModel();}}
-            aria-label={`Focus whole`}
-            className={`text-white`} 
-            >
-            <Focus size={14} className='mb-3'/>
-          </button>
+          <div className='flex gap-2'>
+            <Tooltip content={`Refresh`} placement='bottom'>
+              <button
+                onClick={(e)=>{e.preventDefault(); fetchUserModels();}}
+                aria-label={`Focus whole`}
+                className={`text-white`} 
+                >
+                <RefreshCw size={14} className='mb-3'/>
+              </button>
+            </Tooltip>
+            <Tooltip content={`Focus All`} placement='bottom'>
+              <button
+                onClick={(e)=>{e.preventDefault(); onFocusAllModel();}}
+                aria-label={`Focus whole`}
+                className={`text-white`} 
+                >
+                <Focus size={14} className='mb-3'/>
+              </button>
+            </Tooltip>
+          </div> 
         </div>
         <div className="flex flex-col gap-2">
-          {files.length === 0 ? (
+          {isLoading ? (
+            <div className="flex justify-center p-4">
+                {/* 如果沒有 HeroUI Spinner，可以用文字代替 */}
+                <Spinner className="text-xs text-gray-500">Loading models...</Spinner>
+            </div>
+          ) : completedModels.length === 0 ? (
             <p className="text-gray-500 text-xs italic text-center mt-4">No models loaded yet</p>
           ) : (
-            files.map((fileItem) => (
+            completedModels.map((fileItem) => (
               <div 
                 key={fileItem.id}
-                onClick={() => onSelectFile(fileItem)}
+                // onClick={() => onSelectFile(fileItem)}
                 className={`group flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all ${
                   selectedFileId === fileItem.id 
                   ? 'bg-[#D70036] text-white shadow-lg' 
                   : 'bg-[#27272A] text-gray-300 hover:bg-[#3F3F46]'
                 }`}
               >
-                {fileItem.type === '3d' ? <Box size={18} /> : <FileText size={18} />}
+                {fileItem.type === '3d' ? <Box width={20} height={20} /> : <FileText size={20} />}
                 <Tooltip content={`${fileItem.name}`} placement='bottom'>
-                  <span className="text-xs truncate flex-grow">                    
+                  <span className="text-sm truncate flex-grow">                    
                       {fileItem.name}
                   </span>
+                </Tooltip>
+                <Tooltip content={`Show in Viewer`} placement='bottom'>
+                  <button
+                    onClick={(e) => focusModel(fileItem.id, e)}
+                    aria-label={`Focus ${fileItem.name}`}
+                    className={`${fileItem.type === 'pdf' ? "hidden":null} text-gray-300 hover:text-white`}
+                    >
+                    <CloudDownload size={16}/>
+                  </button>
                 </Tooltip>
                 <Tooltip content={`Focus`} placement='bottom'>
                   <button
                     onClick={(e) => focusModel(fileItem.id, e)}
                     aria-label={`Focus ${fileItem.name}`}
-                    className={`${fileItem.type === 'pdf' ? "hidden":null} opacity-0 group-hover:opacity-100 hover:text-white transition-opacity`}
+                    className={`${fileItem.type === 'pdf' ? "hidden":null} text-gray-300 hover:text-white`}
                     >
-                    <Focus size={14}/>
-                  </button>
-                </Tooltip>
-                <Tooltip content={`Download`} placement='bottom'>
-                  <button
-                    onClick={(e) => exportFile(fileItem.id, e)}
-                    aria-label={`export ${fileItem.name}`}
-                    className="opacity-0 group-hover:opacity-100 hover:text-white transition-opacity"
-                    >
-                    <Download size={14}/>
+                    <Focus size={16}/>
                   </button>
                 </Tooltip>
                 <Tooltip content={`Remove`} placement='bottom'>
                   <button
                     onClick={(e) => removeFile(fileItem.id, e)}
                     aria-label={`Remove ${fileItem.name}`}
-                    className="opacity-0 group-hover:opacity-100 hover:text-white transition-opacity"
+                    className="text-gray-300 hover:text-white"
                   >
-                    <X size={14} />
+                    <Trash2 size={16} />
                   </button>
                 </Tooltip>
               </div>
