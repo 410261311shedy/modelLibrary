@@ -1,3 +1,28 @@
+model Account {
+  id String @id @default(uuid())
+
+  // 對應 userId: { type: Schema.Types.ObjectId, ref: "User", required: true }
+  userId String
+  // 定義外鍵關聯：當 User 被刪除時，Account 也一併刪除 (Cascade) 一個account 只能有一個user
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 對應 password: { type: String }
+  password String?
+
+  // 對應 provider: { type: String, required: true }
+  provider String
+
+  // 對應 providerAccountId: { type: String, required: true }
+  providerAccountId String
+
+  // 對應 timestamps: true
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 建立複合索引 (可選，但推薦)：避免同一個 provider 重複綁定同一個 ID
+  @@unique([provider, providerAccountId])
+}
+
 // prisma/schema/main.prisma
 
 generator client {
@@ -62,6 +87,43 @@ model Post {
   author     String
   team       String?
 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  Free
+  Pro
+}
+
+model User {
+  // 使用 String 型別以兼容舊的 MongoDB ObjectId，新資料預設使用 cuid
+  id String @id @default(uuid())
+
+  // 對應 userName: { type: String, required: true, unique: true }
+  userName String @unique
+
+  // 對應 email: { type: String, required: true, unique: true }
+  email String @unique
+
+  // 對應 role: { type: String, enum: ["Free", "Pro"], required: true }
+  role Role @default(Free)
+
+  // 對應 image: { type: String }
+  image String?
+
+  // 對應 team: { type: [Schema.Types.ObjectId] }
+  // Postgres 支援字串陣列，這裡先用來存 ID。
+  // 若未來有 Team table，建議改成關聯 @relation
+  team String[]
+
+  // 對應 userCollection: { type: [Schema.Types.ObjectId] }
+  userCollection String[]
+
+  // 建立與 Account 的關聯 (User 能有多個 Account) provider不同會有不同account
+  accounts Account[]
+
+  // 對應 timestamps: true
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

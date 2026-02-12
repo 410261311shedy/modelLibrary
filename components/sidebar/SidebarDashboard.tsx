@@ -38,7 +38,7 @@ const SidebarDashboard = ({ currentSelect, onSelect }: SidebarDashboardProps) =>
                     }
                     <div className='flex flex-col gap'>
                         <p className='font-inter font-light text-[#ECEDEE]'>{session?.user?.name}</p>
-                        <p className='font-inter font-light text-[#71717A]'>User Role</p>
+                        <p className='font-inter font-light text-[#71717A]'>{session?.user?.role} User</p>
                     </div>
                 </div>
                 <div className="flex flex-col w-full">

@@ -1,13 +1,15 @@
 "use server";
 
 import bcrypt from "bcryptjs";
-import mongoose from "mongoose";
-
-import dbConnect from "@/lib/mongoose";
-import User from "@/models/user.model";
-import Account from "@/models/account.model";
+import { prisma } from "@/lib/prisma";
 import { SignUpSchema } from "@/lib/validations";
+import { success } from "zod";
 
+interface AuthCredentials {
+    username?: string;
+    email: string;
+    password?: string;
+}
 
 
 /**
@@ -30,71 +32,52 @@ export async function signUpWithCredentials(params: AuthCredentials) {
     return { success: false, error: validationResult.error.issues[0].message };
   }
 
-  // 3. 連接資料庫
-  await dbConnect();
-
-  // 4. 開啟 Mongoose Session 以進行交易（Transaction）
-  // 確保 User 和 Account 同時建立成功，若其中一個失敗則全部回滾
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
   try {
-    // 5. 檢查電子郵件是否已被註冊
-    const existingUser = await User.findOne({ email }).session(session);
-    if (existingUser) {
-      throw new Error("User already exists");
-    }
+    // 使用 Prisma Transaction 確保原子性
+    // 同步成敗,自動回滾,tx 是一個專門用於此事務的臨時客戶端實例。
+    await prisma.$transaction(async (tx)=>{
+      // 1. 檢查 Email (使用 findUnique)
+      const existingUserByEmail = await tx.user.findUnique({
+        where:{ email:email },
+      });
+      if(existingUserByEmail) throw new Error("User already exists");
 
-    // 6. 檢查使用者名稱是否已被佔用
-    const existingUsername = await User.findOne({ userName: username }).session(session);
-    if (existingUsername) {
-      throw new Error("Username already taken");
-    }
+      //2.檢查userName
+      const existingUserByName = await tx.user.findUnique({
+        where: { userName: username },
+      })
+      if(existingUserByName) throw new Error("User already exists");
 
-    // 7. 密碼雜湊處理（Hashing）
-    const hashedPassword = await bcrypt.hash(password, 12);
+      // 3. 密碼雜湊
+      const hashedPassword = await bcrypt.hash(password,12);
 
-    // 8. 建立使用者基本資料 (User Model)
-    const [newUser] = await User.create(
-      [
-        {
+      // 4. 建立 User
+      const newUser = await tx.user.create({
+        data:{
           userName: username,
-          email,
-          role: "Free",
+          email:email,
+          role:"Free",
+          image:"",// 如果 Schema 是 Optional (String?) 可以不傳，否則傳空字串
         },
-      ],
-      { session }
-    );
+      });
 
-    // 9. 建立帳號驗證資料 (Account Model)
-    // 將雜湊後的密碼存入 Account，並關聯到剛建立的 User ID
-    await Account.create(
-      [
-        {
-          userId: newUser._id,
+      // 5. 建立 Account (連結剛建立的 userId)
+      await tx.account.create({
+        data:{
+          userId: newUser.id,// Prisma 自動生成的 ID
           password: hashedPassword,
-          provider: "credentials",
-          providerAccountId: newUser._id.toString(),
+          provider:"credentials",
+          providerAccountId: newUser.id,
         },
-      ],
-      { session }
-    );
+      });
+    });
 
-    // 10. 提交交易
-    await session.commitTransaction();
+    return {success:true};
 
-    return { success: true };
   } catch (error: unknown) {
-    // 發生錯誤時，如果交易還在進行中，則回滾所有變更
-    if (session.inTransaction()) {
-      await session.abortTransaction();
-    }
     return {
       success: false,
       error: error instanceof Error ? error.message : "An unexpected error occurred"
     };
-  } finally {
-    // 無論成功或失敗，最後都要關閉 Session
-    session.endSession();
-  }
+  } 
 }

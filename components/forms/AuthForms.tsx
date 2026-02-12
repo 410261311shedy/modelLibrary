@@ -109,7 +109,19 @@ const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
     setIsSubmitting(true);
     try {
         const result = await onSubmit(data);
-        
+        // 成功
+        if (result.success) {
+            if (formType === "SIGN_UP") {
+                // 如果是註冊成功，跳轉到登入頁
+                router.push("/sign-in");
+            } else {
+                // 如果是登入成功，通常 NextAuth 會處理，或是你可以跳轉到首頁
+                router.push("/"); 
+                router.refresh();
+            }
+            return; // 成功後直接結束，不執行下面的錯誤處理
+        }
+        // 失敗
         // Handle server-side errors (e.g., duplicate email or invalid credentials)
         if (!result.success && result.error) {
             const errorMsg = result.error.toLowerCase();
