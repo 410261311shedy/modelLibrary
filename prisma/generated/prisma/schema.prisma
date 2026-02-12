@@ -45,12 +45,15 @@ enum ProcessStatus {
 // prisma/schema/model.prisma
 
 model Model {
-  id       String @id @default(uuid())
-  shortId  String @unique // 用於分享的短 ID
-  name     String // 原始檔名
-  fileId   String @unique // MinIO / Tus ID (關鍵關聯)
-  uploader String // 上傳者 (User ID)
-  size     Int    @default(0) // 檔案大小 (bytes)
+  id      String @id @default(uuid())
+  shortId String @unique // 用於分享的短 ID
+  name    String // 原始檔名
+  fileId  String @unique // MinIO / Tus ID (關鍵關聯)
+
+  // 建立與 User 的關聯
+  uploaderId String // 外鍵欄位
+  uploader   User   @relation(fields: [uploaderId], references: [id])
+  size       String @default("") // 檔案大小 (bytes)
 
   status       ProcessStatus @default(uploading)
   errorMessage String?
@@ -123,6 +126,8 @@ model User {
   // 建立與 Account 的關聯 (User 能有多個 Account) provider不同會有不同account
   accounts Account[]
 
+  // 一個使用者可以擁有多個模型
+  models    Model[]
   // 對應 timestamps: true
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

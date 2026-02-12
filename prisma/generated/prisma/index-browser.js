@@ -135,7 +135,7 @@ exports.Prisma.ModelScalarFieldEnum = {
   shortId: 'shortId',
   name: 'name',
   fileId: 'fileId',
-  uploader: 'uploader',
+  uploaderId: 'uploaderId',
   size: 'size',
   status: 'status',
   errorMessage: 'errorMessage',

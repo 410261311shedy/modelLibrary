@@ -6,6 +6,7 @@ import Uppy, { Uppy as UppyType } from "@uppy/core";
 import Tus from "@uppy/tus";
 import { io, Socket } from "socket.io-client";
 import { addToast } from "@heroui/toast"; // 使用 HeroUI Toast
+import { useSession } from "next-auth/react";
 
 // 定義 TrackedFile 介面 (如上所述)
 export interface TrackedFile {
@@ -27,6 +28,7 @@ interface UploadContextType {
 const UploadContext = createContext<UploadContextType | null>(null);
 
 export const UploadProvider = ({ children }: { children: React.ReactNode }) => {
+    const {data:session} = useSession();
     // 使用物件來儲存狀態，確保可以透過 ID 快速更新
     const [trackedFiles, setTrackedFiles] = useState<Record<string, TrackedFile>>({});
 
@@ -80,7 +82,7 @@ export const UploadProvider = ({ children }: { children: React.ReactNode }) => {
             });
         });
         // 監聽 Worker 完成訊號
-        socket.on("conversion-complete", (data: { fileId: string, status: string, message?: string }) => {
+        socket.on("conversion-complete", (data: { fileId: string, status: string,fileName:string, message?: string }) => {
             console.log("✅ Socket 收到通知:", data);
 
             // 先透過 Ref 找到 UppyId (不需要進入 setState 就能找)
@@ -93,7 +95,7 @@ export const UploadProvider = ({ children }: { children: React.ReactNode }) => {
             if (data.status === 'success') {
                 addToast({
                     title: "轉檔完成",
-                    description: `${tusIdMap.current[data.fileId].name}已準備就緒`, // 這裡暫時拿不到 file.name，稍後說明
+                    description: `${data.fileName}已準備就緒`, // 這裡暫時拿不到 file.name，稍後說明
                     color: "success",
                     timeout: Infinity,
                 });
@@ -153,6 +155,18 @@ export const UploadProvider = ({ children }: { children: React.ReactNode }) => {
         try { uppy.removeFile(uppyId); } catch (e) {}
     };
 
+    // 🔥 [新增] 獨立的 Effect：當 Session 載入完成，將 UserID 寫入 Uppy Metadata
+    useEffect(() => {
+        if (uppy && session?.user?.id) {
+            // 設定全域 metadata，所有新增的檔案都會自動帶上這個 ID
+            uppy.setMeta({ 
+                userid: session.user.id,
+                email: session.user.email 
+            });
+            console.log("✅ [UploadContext] Uppy 已綁定 User:", session.user.id);
+        }
+    }, [uppy, session]); // 👈 關鍵：這裡要監聽 session
+
     // 3. Uppy 事件監聽 (同步 React State)
     useEffect(() => {
         // A. 檔案加入：初始化狀態
@@ -206,7 +220,7 @@ export const UploadProvider = ({ children }: { children: React.ReactNode }) => {
             [file.id]: { 
             ...prev[file.id], 
             tusId: fileid,
-            progress: 100, 
+            progress: 0, 
             status: 'processing' // 切換狀態為轉檔中 (藍色流動條)
             } as TrackedFile
         }));

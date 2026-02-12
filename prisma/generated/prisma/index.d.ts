@@ -1198,10 +1198,12 @@ export namespace Prisma {
 
   export type UserCountOutputType = {
     accounts: number
+    models: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     accounts?: boolean | UserCountOutputTypeCountAccountsArgs
+    models?: boolean | UserCountOutputTypeCountModelsArgs
   }
 
   // Custom InputTypes
@@ -1220,6 +1222,13 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountAccountsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: AccountWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountModelsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ModelWhereInput
   }
 
 
@@ -2317,18 +2326,8 @@ export namespace Prisma {
 
   export type AggregateModel = {
     _count: ModelCountAggregateOutputType | null
-    _avg: ModelAvgAggregateOutputType | null
-    _sum: ModelSumAggregateOutputType | null
     _min: ModelMinAggregateOutputType | null
     _max: ModelMaxAggregateOutputType | null
-  }
-
-  export type ModelAvgAggregateOutputType = {
-    size: number | null
-  }
-
-  export type ModelSumAggregateOutputType = {
-    size: number | null
   }
 
   export type ModelMinAggregateOutputType = {
@@ -2336,8 +2335,8 @@ export namespace Prisma {
     shortId: string | null
     name: string | null
     fileId: string | null
-    uploader: string | null
-    size: number | null
+    uploaderId: string | null
+    size: string | null
     status: $Enums.ProcessStatus | null
     errorMessage: string | null
     createdAt: Date | null
@@ -2349,8 +2348,8 @@ export namespace Prisma {
     shortId: string | null
     name: string | null
     fileId: string | null
-    uploader: string | null
-    size: number | null
+    uploaderId: string | null
+    size: string | null
     status: $Enums.ProcessStatus | null
     errorMessage: string | null
     createdAt: Date | null
@@ -2362,7 +2361,7 @@ export namespace Prisma {
     shortId: number
     name: number
     fileId: number
-    uploader: number
+    uploaderId: number
     size: number
     status: number
     errorMessage: number
@@ -2372,20 +2371,12 @@ export namespace Prisma {
   }
 
 
-  export type ModelAvgAggregateInputType = {
-    size?: true
-  }
-
-  export type ModelSumAggregateInputType = {
-    size?: true
-  }
-
   export type ModelMinAggregateInputType = {
     id?: true
     shortId?: true
     name?: true
     fileId?: true
-    uploader?: true
+    uploaderId?: true
     size?: true
     status?: true
     errorMessage?: true
@@ -2398,7 +2389,7 @@ export namespace Prisma {
     shortId?: true
     name?: true
     fileId?: true
-    uploader?: true
+    uploaderId?: true
     size?: true
     status?: true
     errorMessage?: true
@@ -2411,7 +2402,7 @@ export namespace Prisma {
     shortId?: true
     name?: true
     fileId?: true
-    uploader?: true
+    uploaderId?: true
     size?: true
     status?: true
     errorMessage?: true
@@ -2458,18 +2449,6 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
-     * Select which fields to average
-    **/
-    _avg?: ModelAvgAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to sum
-    **/
-    _sum?: ModelSumAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
      * Select which fields to find the minimum value
     **/
     _min?: ModelMinAggregateInputType
@@ -2500,8 +2479,6 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: ModelCountAggregateInputType | true
-    _avg?: ModelAvgAggregateInputType
-    _sum?: ModelSumAggregateInputType
     _min?: ModelMinAggregateInputType
     _max?: ModelMaxAggregateInputType
   }
@@ -2511,15 +2488,13 @@ export namespace Prisma {
     shortId: string
     name: string
     fileId: string
-    uploader: string
-    size: number
+    uploaderId: string
+    size: string
     status: $Enums.ProcessStatus
     errorMessage: string | null
     createdAt: Date
     updatedAt: Date
     _count: ModelCountAggregateOutputType | null
-    _avg: ModelAvgAggregateOutputType | null
-    _sum: ModelSumAggregateOutputType | null
     _min: ModelMinAggregateOutputType | null
     _max: ModelMaxAggregateOutputType | null
   }
@@ -2543,12 +2518,13 @@ export namespace Prisma {
     shortId?: boolean
     name?: boolean
     fileId?: boolean
-    uploader?: boolean
+    uploaderId?: boolean
     size?: boolean
     status?: boolean
     errorMessage?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    uploader?: boolean | UserDefaultArgs<ExtArgs>
     posts?: boolean | Model$postsArgs<ExtArgs>
     _count?: boolean | ModelCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["model"]>
@@ -2558,12 +2534,13 @@ export namespace Prisma {
     shortId?: boolean
     name?: boolean
     fileId?: boolean
-    uploader?: boolean
+    uploaderId?: boolean
     size?: boolean
     status?: boolean
     errorMessage?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    uploader?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["model"]>
 
   export type ModelSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -2571,12 +2548,13 @@ export namespace Prisma {
     shortId?: boolean
     name?: boolean
     fileId?: boolean
-    uploader?: boolean
+    uploaderId?: boolean
     size?: boolean
     status?: boolean
     errorMessage?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    uploader?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["model"]>
 
   export type ModelSelectScalar = {
@@ -2584,7 +2562,7 @@ export namespace Prisma {
     shortId?: boolean
     name?: boolean
     fileId?: boolean
-    uploader?: boolean
+    uploaderId?: boolean
     size?: boolean
     status?: boolean
     errorMessage?: boolean
@@ -2592,17 +2570,23 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type ModelOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "shortId" | "name" | "fileId" | "uploader" | "size" | "status" | "errorMessage" | "createdAt" | "updatedAt", ExtArgs["result"]["model"]>
+  export type ModelOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "shortId" | "name" | "fileId" | "uploaderId" | "size" | "status" | "errorMessage" | "createdAt" | "updatedAt", ExtArgs["result"]["model"]>
   export type ModelInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    uploader?: boolean | UserDefaultArgs<ExtArgs>
     posts?: boolean | Model$postsArgs<ExtArgs>
     _count?: boolean | ModelCountOutputTypeDefaultArgs<ExtArgs>
   }
-  export type ModelIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
-  export type ModelIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type ModelIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    uploader?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type ModelIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    uploader?: boolean | UserDefaultArgs<ExtArgs>
+  }
 
   export type $ModelPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Model"
     objects: {
+      uploader: Prisma.$UserPayload<ExtArgs>
       posts: Prisma.$PostPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -2610,8 +2594,8 @@ export namespace Prisma {
       shortId: string
       name: string
       fileId: string
-      uploader: string
-      size: number
+      uploaderId: string
+      size: string
       status: $Enums.ProcessStatus
       errorMessage: string | null
       createdAt: Date
@@ -3010,6 +2994,7 @@ export namespace Prisma {
    */
   export interface Prisma__ModelClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
+    uploader<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     posts<T extends Model$postsArgs<ExtArgs> = {}>(args?: Subset<T, Model$postsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PostPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -3044,8 +3029,8 @@ export namespace Prisma {
     readonly shortId: FieldRef<"Model", 'String'>
     readonly name: FieldRef<"Model", 'String'>
     readonly fileId: FieldRef<"Model", 'String'>
-    readonly uploader: FieldRef<"Model", 'String'>
-    readonly size: FieldRef<"Model", 'Int'>
+    readonly uploaderId: FieldRef<"Model", 'String'>
+    readonly size: FieldRef<"Model", 'String'>
     readonly status: FieldRef<"Model", 'ProcessStatus'>
     readonly errorMessage: FieldRef<"Model", 'String'>
     readonly createdAt: FieldRef<"Model", 'DateTime'>
@@ -3299,6 +3284,10 @@ export namespace Prisma {
      */
     data: ModelCreateManyInput | ModelCreateManyInput[]
     skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ModelIncludeCreateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -3369,6 +3358,10 @@ export namespace Prisma {
      * Limit how many Models to update.
      */
     limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ModelIncludeUpdateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -4845,6 +4838,7 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     accounts?: boolean | User$accountsArgs<ExtArgs>
+    models?: boolean | User$modelsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -4887,6 +4881,7 @@ export namespace Prisma {
   export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userName" | "email" | "role" | "image" | "team" | "userCollection" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     accounts?: boolean | User$accountsArgs<ExtArgs>
+    models?: boolean | User$modelsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -4896,6 +4891,7 @@ export namespace Prisma {
     name: "User"
     objects: {
       accounts: Prisma.$AccountPayload<ExtArgs>[]
+      models: Prisma.$ModelPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -5302,6 +5298,7 @@ export namespace Prisma {
   export interface Prisma__UserClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     accounts<T extends User$accountsArgs<ExtArgs> = {}>(args?: Subset<T, User$accountsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    models<T extends User$modelsArgs<ExtArgs> = {}>(args?: Subset<T, User$modelsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ModelPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -5752,6 +5749,30 @@ export namespace Prisma {
   }
 
   /**
+   * User.models
+   */
+  export type User$modelsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Model
+     */
+    select?: ModelSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Model
+     */
+    omit?: ModelOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ModelInclude<ExtArgs> | null
+    where?: ModelWhereInput
+    orderBy?: ModelOrderByWithRelationInput | ModelOrderByWithRelationInput[]
+    cursor?: ModelWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ModelScalarFieldEnum | ModelScalarFieldEnum[]
+  }
+
+  /**
    * User without action
    */
   export type UserDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -5802,7 +5823,7 @@ export namespace Prisma {
     shortId: 'shortId',
     name: 'name',
     fileId: 'fileId',
-    uploader: 'uploader',
+    uploaderId: 'uploaderId',
     size: 'size',
     status: 'status',
     errorMessage: 'errorMessage',
@@ -5907,20 +5928,6 @@ export namespace Prisma {
 
 
   /**
-   * Reference to a field of type 'Int'
-   */
-  export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
-    
-
-
-  /**
-   * Reference to a field of type 'Int[]'
-   */
-  export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
-    
-
-
-  /**
    * Reference to a field of type 'ProcessStatus'
    */
   export type EnumProcessStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProcessStatus'>
@@ -5949,16 +5956,16 @@ export namespace Prisma {
 
 
   /**
-   * Reference to a field of type 'Float'
+   * Reference to a field of type 'Int'
    */
-  export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
+  export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
     
 
 
   /**
-   * Reference to a field of type 'Float[]'
+   * Reference to a field of type 'Int[]'
    */
-  export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+  export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
     
   /**
    * Deep Input Types
@@ -6039,12 +6046,13 @@ export namespace Prisma {
     shortId?: StringFilter<"Model"> | string
     name?: StringFilter<"Model"> | string
     fileId?: StringFilter<"Model"> | string
-    uploader?: StringFilter<"Model"> | string
-    size?: IntFilter<"Model"> | number
+    uploaderId?: StringFilter<"Model"> | string
+    size?: StringFilter<"Model"> | string
     status?: EnumProcessStatusFilter<"Model"> | $Enums.ProcessStatus
     errorMessage?: StringNullableFilter<"Model"> | string | null
     createdAt?: DateTimeFilter<"Model"> | Date | string
     updatedAt?: DateTimeFilter<"Model"> | Date | string
+    uploader?: XOR<UserScalarRelationFilter, UserWhereInput>
     posts?: PostListRelationFilter
   }
 
@@ -6053,12 +6061,13 @@ export namespace Prisma {
     shortId?: SortOrder
     name?: SortOrder
     fileId?: SortOrder
-    uploader?: SortOrder
+    uploaderId?: SortOrder
     size?: SortOrder
     status?: SortOrder
     errorMessage?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    uploader?: UserOrderByWithRelationInput
     posts?: PostOrderByRelationAggregateInput
   }
 
@@ -6070,12 +6079,13 @@ export namespace Prisma {
     OR?: ModelWhereInput[]
     NOT?: ModelWhereInput | ModelWhereInput[]
     name?: StringFilter<"Model"> | string
-    uploader?: StringFilter<"Model"> | string
-    size?: IntFilter<"Model"> | number
+    uploaderId?: StringFilter<"Model"> | string
+    size?: StringFilter<"Model"> | string
     status?: EnumProcessStatusFilter<"Model"> | $Enums.ProcessStatus
     errorMessage?: StringNullableFilter<"Model"> | string | null
     createdAt?: DateTimeFilter<"Model"> | Date | string
     updatedAt?: DateTimeFilter<"Model"> | Date | string
+    uploader?: XOR<UserScalarRelationFilter, UserWhereInput>
     posts?: PostListRelationFilter
   }, "id" | "shortId" | "fileId">
 
@@ -6084,17 +6094,15 @@ export namespace Prisma {
     shortId?: SortOrder
     name?: SortOrder
     fileId?: SortOrder
-    uploader?: SortOrder
+    uploaderId?: SortOrder
     size?: SortOrder
     status?: SortOrder
     errorMessage?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: ModelCountOrderByAggregateInput
-    _avg?: ModelAvgOrderByAggregateInput
     _max?: ModelMaxOrderByAggregateInput
     _min?: ModelMinOrderByAggregateInput
-    _sum?: ModelSumOrderByAggregateInput
   }
 
   export type ModelScalarWhereWithAggregatesInput = {
@@ -6105,8 +6113,8 @@ export namespace Prisma {
     shortId?: StringWithAggregatesFilter<"Model"> | string
     name?: StringWithAggregatesFilter<"Model"> | string
     fileId?: StringWithAggregatesFilter<"Model"> | string
-    uploader?: StringWithAggregatesFilter<"Model"> | string
-    size?: IntWithAggregatesFilter<"Model"> | number
+    uploaderId?: StringWithAggregatesFilter<"Model"> | string
+    size?: StringWithAggregatesFilter<"Model"> | string
     status?: EnumProcessStatusWithAggregatesFilter<"Model"> | $Enums.ProcessStatus
     errorMessage?: StringNullableWithAggregatesFilter<"Model"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Model"> | Date | string
@@ -6232,6 +6240,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
     accounts?: AccountListRelationFilter
+    models?: ModelListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -6245,6 +6254,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     accounts?: AccountOrderByRelationAggregateInput
+    models?: ModelOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -6261,6 +6271,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
     accounts?: AccountListRelationFilter
+    models?: ModelListRelationFilter
   }, "id" | "userName" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -6367,12 +6378,12 @@ export namespace Prisma {
     shortId: string
     name: string
     fileId: string
-    uploader: string
-    size?: number
+    size?: string
     status?: $Enums.ProcessStatus
     errorMessage?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    uploader: UserCreateNestedOneWithoutModelsInput
     posts?: PostCreateNestedManyWithoutModelInput
   }
 
@@ -6381,8 +6392,8 @@ export namespace Prisma {
     shortId: string
     name: string
     fileId: string
-    uploader: string
-    size?: number
+    uploaderId: string
+    size?: string
     status?: $Enums.ProcessStatus
     errorMessage?: string | null
     createdAt?: Date | string
@@ -6395,12 +6406,12 @@ export namespace Prisma {
     shortId?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     fileId?: StringFieldUpdateOperationsInput | string
-    uploader?: StringFieldUpdateOperationsInput | string
-    size?: IntFieldUpdateOperationsInput | number
+    size?: StringFieldUpdateOperationsInput | string
     status?: EnumProcessStatusFieldUpdateOperationsInput | $Enums.ProcessStatus
     errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    uploader?: UserUpdateOneRequiredWithoutModelsNestedInput
     posts?: PostUpdateManyWithoutModelNestedInput
   }
 
@@ -6409,8 +6420,8 @@ export namespace Prisma {
     shortId?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     fileId?: StringFieldUpdateOperationsInput | string
-    uploader?: StringFieldUpdateOperationsInput | string
-    size?: IntFieldUpdateOperationsInput | number
+    uploaderId?: StringFieldUpdateOperationsInput | string
+    size?: StringFieldUpdateOperationsInput | string
     status?: EnumProcessStatusFieldUpdateOperationsInput | $Enums.ProcessStatus
     errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -6423,8 +6434,8 @@ export namespace Prisma {
     shortId: string
     name: string
     fileId: string
-    uploader: string
-    size?: number
+    uploaderId: string
+    size?: string
     status?: $Enums.ProcessStatus
     errorMessage?: string | null
     createdAt?: Date | string
@@ -6436,8 +6447,7 @@ export namespace Prisma {
     shortId?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     fileId?: StringFieldUpdateOperationsInput | string
-    uploader?: StringFieldUpdateOperationsInput | string
-    size?: IntFieldUpdateOperationsInput | number
+    size?: StringFieldUpdateOperationsInput | string
     status?: EnumProcessStatusFieldUpdateOperationsInput | $Enums.ProcessStatus
     errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -6449,8 +6459,8 @@ export namespace Prisma {
     shortId?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     fileId?: StringFieldUpdateOperationsInput | string
-    uploader?: StringFieldUpdateOperationsInput | string
-    size?: IntFieldUpdateOperationsInput | number
+    uploaderId?: StringFieldUpdateOperationsInput | string
+    size?: StringFieldUpdateOperationsInput | string
     status?: EnumProcessStatusFieldUpdateOperationsInput | $Enums.ProcessStatus
     errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -6593,6 +6603,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     accounts?: AccountCreateNestedManyWithoutUserInput
+    models?: ModelCreateNestedManyWithoutUploaderInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -6606,6 +6617,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
+    models?: ModelUncheckedCreateNestedManyWithoutUploaderInput
   }
 
   export type UserUpdateInput = {
@@ -6619,6 +6631,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     accounts?: AccountUpdateManyWithoutUserNestedInput
+    models?: ModelUpdateManyWithoutUploaderNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -6632,6 +6645,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
+    models?: ModelUncheckedUpdateManyWithoutUploaderNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -6806,17 +6820,6 @@ export namespace Prisma {
     _max?: NestedDateTimeFilter<$PrismaModel>
   }
 
-  export type IntFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntFilter<$PrismaModel> | number
-  }
-
   export type EnumProcessStatusFilter<$PrismaModel = never> = {
     equals?: $Enums.ProcessStatus | EnumProcessStatusFieldRefInput<$PrismaModel>
     in?: $Enums.ProcessStatus[] | ListEnumProcessStatusFieldRefInput<$PrismaModel>
@@ -6839,7 +6842,7 @@ export namespace Prisma {
     shortId?: SortOrder
     name?: SortOrder
     fileId?: SortOrder
-    uploader?: SortOrder
+    uploaderId?: SortOrder
     size?: SortOrder
     status?: SortOrder
     errorMessage?: SortOrder
@@ -6847,16 +6850,12 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
-  export type ModelAvgOrderByAggregateInput = {
-    size?: SortOrder
-  }
-
   export type ModelMaxOrderByAggregateInput = {
     id?: SortOrder
     shortId?: SortOrder
     name?: SortOrder
     fileId?: SortOrder
-    uploader?: SortOrder
+    uploaderId?: SortOrder
     size?: SortOrder
     status?: SortOrder
     errorMessage?: SortOrder
@@ -6869,32 +6868,12 @@ export namespace Prisma {
     shortId?: SortOrder
     name?: SortOrder
     fileId?: SortOrder
-    uploader?: SortOrder
+    uploaderId?: SortOrder
     size?: SortOrder
     status?: SortOrder
     errorMessage?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-  }
-
-  export type ModelSumOrderByAggregateInput = {
-    size?: SortOrder
-  }
-
-  export type IntWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
-    _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedIntFilter<$PrismaModel>
-    _min?: NestedIntFilter<$PrismaModel>
-    _max?: NestedIntFilter<$PrismaModel>
   }
 
   export type EnumProcessStatusWithAggregatesFilter<$PrismaModel = never> = {
@@ -6981,7 +6960,17 @@ export namespace Prisma {
     none?: AccountWhereInput
   }
 
+  export type ModelListRelationFilter = {
+    every?: ModelWhereInput
+    some?: ModelWhereInput
+    none?: ModelWhereInput
+  }
+
   export type AccountOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ModelOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -7053,6 +7042,12 @@ export namespace Prisma {
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutAccountsInput, UserUpdateWithoutAccountsInput>, UserUncheckedUpdateWithoutAccountsInput>
   }
 
+  export type UserCreateNestedOneWithoutModelsInput = {
+    create?: XOR<UserCreateWithoutModelsInput, UserUncheckedCreateWithoutModelsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutModelsInput
+    connect?: UserWhereUniqueInput
+  }
+
   export type PostCreateNestedManyWithoutModelInput = {
     create?: XOR<PostCreateWithoutModelInput, PostUncheckedCreateWithoutModelInput> | PostCreateWithoutModelInput[] | PostUncheckedCreateWithoutModelInput[]
     connectOrCreate?: PostCreateOrConnectWithoutModelInput | PostCreateOrConnectWithoutModelInput[]
@@ -7067,16 +7062,16 @@ export namespace Prisma {
     connect?: PostWhereUniqueInput | PostWhereUniqueInput[]
   }
 
-  export type IntFieldUpdateOperationsInput = {
-    set?: number
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
-  }
-
   export type EnumProcessStatusFieldUpdateOperationsInput = {
     set?: $Enums.ProcessStatus
+  }
+
+  export type UserUpdateOneRequiredWithoutModelsNestedInput = {
+    create?: XOR<UserCreateWithoutModelsInput, UserUncheckedCreateWithoutModelsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutModelsInput
+    upsert?: UserUpsertWithoutModelsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutModelsInput, UserUpdateWithoutModelsInput>, UserUncheckedUpdateWithoutModelsInput>
   }
 
   export type PostUpdateManyWithoutModelNestedInput = {
@@ -7163,11 +7158,25 @@ export namespace Prisma {
     connect?: AccountWhereUniqueInput | AccountWhereUniqueInput[]
   }
 
+  export type ModelCreateNestedManyWithoutUploaderInput = {
+    create?: XOR<ModelCreateWithoutUploaderInput, ModelUncheckedCreateWithoutUploaderInput> | ModelCreateWithoutUploaderInput[] | ModelUncheckedCreateWithoutUploaderInput[]
+    connectOrCreate?: ModelCreateOrConnectWithoutUploaderInput | ModelCreateOrConnectWithoutUploaderInput[]
+    createMany?: ModelCreateManyUploaderInputEnvelope
+    connect?: ModelWhereUniqueInput | ModelWhereUniqueInput[]
+  }
+
   export type AccountUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
     createMany?: AccountCreateManyUserInputEnvelope
     connect?: AccountWhereUniqueInput | AccountWhereUniqueInput[]
+  }
+
+  export type ModelUncheckedCreateNestedManyWithoutUploaderInput = {
+    create?: XOR<ModelCreateWithoutUploaderInput, ModelUncheckedCreateWithoutUploaderInput> | ModelCreateWithoutUploaderInput[] | ModelUncheckedCreateWithoutUploaderInput[]
+    connectOrCreate?: ModelCreateOrConnectWithoutUploaderInput | ModelCreateOrConnectWithoutUploaderInput[]
+    createMany?: ModelCreateManyUploaderInputEnvelope
+    connect?: ModelWhereUniqueInput | ModelWhereUniqueInput[]
   }
 
   export type EnumRoleFieldUpdateOperationsInput = {
@@ -7198,6 +7207,20 @@ export namespace Prisma {
     deleteMany?: AccountScalarWhereInput | AccountScalarWhereInput[]
   }
 
+  export type ModelUpdateManyWithoutUploaderNestedInput = {
+    create?: XOR<ModelCreateWithoutUploaderInput, ModelUncheckedCreateWithoutUploaderInput> | ModelCreateWithoutUploaderInput[] | ModelUncheckedCreateWithoutUploaderInput[]
+    connectOrCreate?: ModelCreateOrConnectWithoutUploaderInput | ModelCreateOrConnectWithoutUploaderInput[]
+    upsert?: ModelUpsertWithWhereUniqueWithoutUploaderInput | ModelUpsertWithWhereUniqueWithoutUploaderInput[]
+    createMany?: ModelCreateManyUploaderInputEnvelope
+    set?: ModelWhereUniqueInput | ModelWhereUniqueInput[]
+    disconnect?: ModelWhereUniqueInput | ModelWhereUniqueInput[]
+    delete?: ModelWhereUniqueInput | ModelWhereUniqueInput[]
+    connect?: ModelWhereUniqueInput | ModelWhereUniqueInput[]
+    update?: ModelUpdateWithWhereUniqueWithoutUploaderInput | ModelUpdateWithWhereUniqueWithoutUploaderInput[]
+    updateMany?: ModelUpdateManyWithWhereWithoutUploaderInput | ModelUpdateManyWithWhereWithoutUploaderInput[]
+    deleteMany?: ModelScalarWhereInput | ModelScalarWhereInput[]
+  }
+
   export type AccountUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -7210,6 +7233,20 @@ export namespace Prisma {
     update?: AccountUpdateWithWhereUniqueWithoutUserInput | AccountUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: AccountUpdateManyWithWhereWithoutUserInput | AccountUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: AccountScalarWhereInput | AccountScalarWhereInput[]
+  }
+
+  export type ModelUncheckedUpdateManyWithoutUploaderNestedInput = {
+    create?: XOR<ModelCreateWithoutUploaderInput, ModelUncheckedCreateWithoutUploaderInput> | ModelCreateWithoutUploaderInput[] | ModelUncheckedCreateWithoutUploaderInput[]
+    connectOrCreate?: ModelCreateOrConnectWithoutUploaderInput | ModelCreateOrConnectWithoutUploaderInput[]
+    upsert?: ModelUpsertWithWhereUniqueWithoutUploaderInput | ModelUpsertWithWhereUniqueWithoutUploaderInput[]
+    createMany?: ModelCreateManyUploaderInputEnvelope
+    set?: ModelWhereUniqueInput | ModelWhereUniqueInput[]
+    disconnect?: ModelWhereUniqueInput | ModelWhereUniqueInput[]
+    delete?: ModelWhereUniqueInput | ModelWhereUniqueInput[]
+    connect?: ModelWhereUniqueInput | ModelWhereUniqueInput[]
+    update?: ModelUpdateWithWhereUniqueWithoutUploaderInput | ModelUpdateWithWhereUniqueWithoutUploaderInput[]
+    updateMany?: ModelUpdateManyWithWhereWithoutUploaderInput | ModelUpdateManyWithWhereWithoutUploaderInput[]
+    deleteMany?: ModelScalarWhereInput | ModelScalarWhereInput[]
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -7328,33 +7365,6 @@ export namespace Prisma {
     not?: NestedEnumProcessStatusFilter<$PrismaModel> | $Enums.ProcessStatus
   }
 
-  export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
-    _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedIntFilter<$PrismaModel>
-    _min?: NestedIntFilter<$PrismaModel>
-    _max?: NestedIntFilter<$PrismaModel>
-  }
-
-  export type NestedFloatFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel>
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatFilter<$PrismaModel> | number
-  }
-
   export type NestedEnumProcessStatusWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.ProcessStatus | EnumProcessStatusFieldRefInput<$PrismaModel>
     in?: $Enums.ProcessStatus[] | ListEnumProcessStatusFieldRefInput<$PrismaModel>
@@ -7392,6 +7402,7 @@ export namespace Prisma {
     userCollection?: UserCreateuserCollectionInput | string[]
     createdAt?: Date | string
     updatedAt?: Date | string
+    models?: ModelCreateNestedManyWithoutUploaderInput
   }
 
   export type UserUncheckedCreateWithoutAccountsInput = {
@@ -7404,6 +7415,7 @@ export namespace Prisma {
     userCollection?: UserCreateuserCollectionInput | string[]
     createdAt?: Date | string
     updatedAt?: Date | string
+    models?: ModelUncheckedCreateNestedManyWithoutUploaderInput
   }
 
   export type UserCreateOrConnectWithoutAccountsInput = {
@@ -7432,6 +7444,7 @@ export namespace Prisma {
     userCollection?: UserUpdateuserCollectionInput | string[]
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    models?: ModelUpdateManyWithoutUploaderNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -7444,6 +7457,38 @@ export namespace Prisma {
     userCollection?: UserUpdateuserCollectionInput | string[]
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    models?: ModelUncheckedUpdateManyWithoutUploaderNestedInput
+  }
+
+  export type UserCreateWithoutModelsInput = {
+    id?: string
+    userName: string
+    email: string
+    role?: $Enums.Role
+    image?: string | null
+    team?: UserCreateteamInput | string[]
+    userCollection?: UserCreateuserCollectionInput | string[]
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    accounts?: AccountCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutModelsInput = {
+    id?: string
+    userName: string
+    email: string
+    role?: $Enums.Role
+    image?: string | null
+    team?: UserCreateteamInput | string[]
+    userCollection?: UserCreateuserCollectionInput | string[]
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutModelsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutModelsInput, UserUncheckedCreateWithoutModelsInput>
   }
 
   export type PostCreateWithoutModelInput = {
@@ -7490,6 +7535,43 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type UserUpsertWithoutModelsInput = {
+    update: XOR<UserUpdateWithoutModelsInput, UserUncheckedUpdateWithoutModelsInput>
+    create: XOR<UserCreateWithoutModelsInput, UserUncheckedCreateWithoutModelsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutModelsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutModelsInput, UserUncheckedUpdateWithoutModelsInput>
+  }
+
+  export type UserUpdateWithoutModelsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userName?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    team?: UserUpdateteamInput | string[]
+    userCollection?: UserUpdateuserCollectionInput | string[]
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    accounts?: AccountUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutModelsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userName?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    team?: UserUpdateteamInput | string[]
+    userCollection?: UserUpdateuserCollectionInput | string[]
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
+  }
+
   export type PostUpsertWithWhereUniqueWithoutModelInput = {
     where: PostWhereUniqueInput
     update: XOR<PostUpdateWithoutModelInput, PostUncheckedUpdateWithoutModelInput>
@@ -7532,12 +7614,12 @@ export namespace Prisma {
     shortId: string
     name: string
     fileId: string
-    uploader: string
-    size?: number
+    size?: string
     status?: $Enums.ProcessStatus
     errorMessage?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    uploader: UserCreateNestedOneWithoutModelsInput
   }
 
   export type ModelUncheckedCreateWithoutPostsInput = {
@@ -7545,8 +7627,8 @@ export namespace Prisma {
     shortId: string
     name: string
     fileId: string
-    uploader: string
-    size?: number
+    uploaderId: string
+    size?: string
     status?: $Enums.ProcessStatus
     errorMessage?: string | null
     createdAt?: Date | string
@@ -7574,12 +7656,12 @@ export namespace Prisma {
     shortId?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     fileId?: StringFieldUpdateOperationsInput | string
-    uploader?: StringFieldUpdateOperationsInput | string
-    size?: IntFieldUpdateOperationsInput | number
+    size?: StringFieldUpdateOperationsInput | string
     status?: EnumProcessStatusFieldUpdateOperationsInput | $Enums.ProcessStatus
     errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    uploader?: UserUpdateOneRequiredWithoutModelsNestedInput
   }
 
   export type ModelUncheckedUpdateWithoutPostsInput = {
@@ -7587,8 +7669,8 @@ export namespace Prisma {
     shortId?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     fileId?: StringFieldUpdateOperationsInput | string
-    uploader?: StringFieldUpdateOperationsInput | string
-    size?: IntFieldUpdateOperationsInput | number
+    uploaderId?: StringFieldUpdateOperationsInput | string
+    size?: StringFieldUpdateOperationsInput | string
     status?: EnumProcessStatusFieldUpdateOperationsInput | $Enums.ProcessStatus
     errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -7623,6 +7705,42 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type ModelCreateWithoutUploaderInput = {
+    id?: string
+    shortId: string
+    name: string
+    fileId: string
+    size?: string
+    status?: $Enums.ProcessStatus
+    errorMessage?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    posts?: PostCreateNestedManyWithoutModelInput
+  }
+
+  export type ModelUncheckedCreateWithoutUploaderInput = {
+    id?: string
+    shortId: string
+    name: string
+    fileId: string
+    size?: string
+    status?: $Enums.ProcessStatus
+    errorMessage?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    posts?: PostUncheckedCreateNestedManyWithoutModelInput
+  }
+
+  export type ModelCreateOrConnectWithoutUploaderInput = {
+    where: ModelWhereUniqueInput
+    create: XOR<ModelCreateWithoutUploaderInput, ModelUncheckedCreateWithoutUploaderInput>
+  }
+
+  export type ModelCreateManyUploaderInputEnvelope = {
+    data: ModelCreateManyUploaderInput | ModelCreateManyUploaderInput[]
+    skipDuplicates?: boolean
+  }
+
   export type AccountUpsertWithWhereUniqueWithoutUserInput = {
     where: AccountWhereUniqueInput
     update: XOR<AccountUpdateWithoutUserInput, AccountUncheckedUpdateWithoutUserInput>
@@ -7650,6 +7768,38 @@ export namespace Prisma {
     providerAccountId?: StringFilter<"Account"> | string
     createdAt?: DateTimeFilter<"Account"> | Date | string
     updatedAt?: DateTimeFilter<"Account"> | Date | string
+  }
+
+  export type ModelUpsertWithWhereUniqueWithoutUploaderInput = {
+    where: ModelWhereUniqueInput
+    update: XOR<ModelUpdateWithoutUploaderInput, ModelUncheckedUpdateWithoutUploaderInput>
+    create: XOR<ModelCreateWithoutUploaderInput, ModelUncheckedCreateWithoutUploaderInput>
+  }
+
+  export type ModelUpdateWithWhereUniqueWithoutUploaderInput = {
+    where: ModelWhereUniqueInput
+    data: XOR<ModelUpdateWithoutUploaderInput, ModelUncheckedUpdateWithoutUploaderInput>
+  }
+
+  export type ModelUpdateManyWithWhereWithoutUploaderInput = {
+    where: ModelScalarWhereInput
+    data: XOR<ModelUpdateManyMutationInput, ModelUncheckedUpdateManyWithoutUploaderInput>
+  }
+
+  export type ModelScalarWhereInput = {
+    AND?: ModelScalarWhereInput | ModelScalarWhereInput[]
+    OR?: ModelScalarWhereInput[]
+    NOT?: ModelScalarWhereInput | ModelScalarWhereInput[]
+    id?: StringFilter<"Model"> | string
+    shortId?: StringFilter<"Model"> | string
+    name?: StringFilter<"Model"> | string
+    fileId?: StringFilter<"Model"> | string
+    uploaderId?: StringFilter<"Model"> | string
+    size?: StringFilter<"Model"> | string
+    status?: EnumProcessStatusFilter<"Model"> | $Enums.ProcessStatus
+    errorMessage?: StringNullableFilter<"Model"> | string | null
+    createdAt?: DateTimeFilter<"Model"> | Date | string
+    updatedAt?: DateTimeFilter<"Model"> | Date | string
   }
 
   export type PostCreateManyModelInput = {
@@ -7729,6 +7879,18 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type ModelCreateManyUploaderInput = {
+    id?: string
+    shortId: string
+    name: string
+    fileId: string
+    size?: string
+    status?: $Enums.ProcessStatus
+    errorMessage?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type AccountUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     password?: NullableStringFieldUpdateOperationsInput | string | null
@@ -7752,6 +7914,44 @@ export namespace Prisma {
     password?: NullableStringFieldUpdateOperationsInput | string | null
     provider?: StringFieldUpdateOperationsInput | string
     providerAccountId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ModelUpdateWithoutUploaderInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    shortId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    fileId?: StringFieldUpdateOperationsInput | string
+    size?: StringFieldUpdateOperationsInput | string
+    status?: EnumProcessStatusFieldUpdateOperationsInput | $Enums.ProcessStatus
+    errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    posts?: PostUpdateManyWithoutModelNestedInput
+  }
+
+  export type ModelUncheckedUpdateWithoutUploaderInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    shortId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    fileId?: StringFieldUpdateOperationsInput | string
+    size?: StringFieldUpdateOperationsInput | string
+    status?: EnumProcessStatusFieldUpdateOperationsInput | $Enums.ProcessStatus
+    errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    posts?: PostUncheckedUpdateManyWithoutModelNestedInput
+  }
+
+  export type ModelUncheckedUpdateManyWithoutUploaderInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    shortId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    fileId?: StringFieldUpdateOperationsInput | string
+    size?: StringFieldUpdateOperationsInput | string
+    status?: EnumProcessStatusFieldUpdateOperationsInput | $Enums.ProcessStatus
+    errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

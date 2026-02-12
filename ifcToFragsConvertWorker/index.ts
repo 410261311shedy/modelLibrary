@@ -7,6 +7,10 @@ import cors from 'cors';
 import * as Minio from 'minio';
 import { Job, JobScheduler, Queue, Worker } from 'bullmq';
 import IORedis from 'ioredis';
+// import { PrismaClient } from '../prisma/generated/prisma/client';
+// import { PrismaPg } from '@prisma/adapter-pg';
+
+import {prisma} from '../lib/prisma';
 
 // 引入核心套件 (ESM)
 import * as FRAGS from "@thatopen/fragments";
@@ -17,6 +21,10 @@ const __dirname = path.dirname(__filename);
 
 // 讀取上一層的 .env
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
+
+// //初始化prisma
+// const adapter = new PrismaPg({ connectionString: process.env.POSTGRESDB_URI});
+// const prisma = new PrismaClient({ adapter });
 
 // === Redis 連線設定 ===
 // 這是 BullMQ 用來連線 Redis 的設定
@@ -49,17 +57,16 @@ const conversionQueue = new Queue('ifc-conversion-queue', {
 
 const PORT = 3005;
 
-async function executeConversionTask(job, fileKey, fileName) {
-    console.log(`🚀 [Job Start] 開始處理: ${fileName} (Key: ${fileKey})`);
-    
+async function executeConversionTask(job:any, fileKey:any, fileName:any, dbId:any) {
+    console.log(`🚀 [Job Start] 開始處理: ${fileName} (Key: ${fileKey})(DB_ID:${dbId})`);
     
     // 1. 下載 IFC
-    const stat = await minioClient.statObject(IFC_BUCKET, fileKey);
+    const stat = await minioClient.statObject(IFC_BUCKET as any, fileKey);
     const totalSize = stat.size;
     let downloadedSize = 0;
 
     console.log(`⬇️ [MinIO] 正在下載...`);
-    const fileStream = await minioClient.getObject(IFC_BUCKET, fileKey);
+    const fileStream = await minioClient.getObject(IFC_BUCKET as any, fileKey);
     const chunks = [];
     for await (const chunk of fileStream) {
         chunks.push(chunk);
@@ -69,13 +76,13 @@ async function executeConversionTask(job, fileKey, fileName) {
         const percentage = Math.round((downloadedSize / totalSize) * 40);
 
         // 簡單節流：每 5% 更新一次
-        if (percentage % 5 === 0){
+        if (percentage % 10 === 0){
             await job.updateProgress(percentage);
         }
     }
 
     const fileBuffer = Buffer.concat(chunks);
-    console.log(`📦 [Worker] 下載完成，大小: ${(fileBuffer.length / 1024 / 1024).toFixed(2)} MB`);
+    console.log(`📦 [Worker] 下載完成，大小: ${(fileBuffer.length / 1024 / 1024).toFixed(2)} MB `);
 
     // ==========================================
     // ⚙️ 轉換階段 (使用 progressCallback)
@@ -98,7 +105,7 @@ async function executeConversionTask(job, fileKey, fileName) {
                 // 公式： 40 + (progress * 0.5)
                 const totalProgress = Math.round(40 + (progress * 50));
 
-                job.updateProgress(totalProgress).catch(e => console.error(e));
+                job.updateProgress(totalProgress).catch((e:any) => console.error(e));
             }
             console.log(`正在進行${job.id}轉檔,總進度為${progress}`);
         }
@@ -113,28 +120,44 @@ async function executeConversionTask(job, fileKey, fileName) {
     const fragKey = fileKey + '.frag'; 
     const fragBuffer = Buffer.from(modelData);
 
-    const bucketExists = await minioClient.bucketExists(FRAG_BUCKET);
+    const bucketExists = await minioClient.bucketExists(FRAG_BUCKET as any);
     if (!bucketExists) {
-        await minioClient.makeBucket(FRAG_BUCKET);
+        await minioClient.makeBucket(FRAG_BUCKET as any);
     }
 
     console.log(`⬆️ [MinIO] 上傳 .frag 檔案: ${fragKey}`);
-    await minioClient.putObject(FRAG_BUCKET, fragKey, fragBuffer);
-    // 完成！更新到 100%
+    await minioClient.putObject(FRAG_BUCKET as any, fragKey, fragBuffer);
+
+    if(dbId){
+        try{
+            await prisma.model.update({
+                where:{id:dbId},
+                data:{
+                    status:'completed',
+                    size:totalSize.toString()
+                }
+            });
+            console.log(`📝 [DB] Model ${fragKey}狀態更新為 Completed`);
+        }catch(e:any){
+            console.error(`⚠️ [DB] Model ${fragKey} 更新狀態失敗: ${e.message}`)
+        }
+    }
+
+        // 完成！更新到 100%
     await job.updateProgress(100);
 
     console.log(`🎉 [Job Done] 任務完成！`);
-    return { fileKey, fileName, fragKey }; // 回傳結果給 Worker 事件
+    return { fileKey, fileName, fragKey, totalSize }; // 回傳結果給 Worker 事件
 }
 
 // 這是真正會在背景「一個接一個」執行任務的工人
 // 會去檢查redis還有沒有工作
 const worker = new Worker('ifc-conversion-queue', async (job) => {
     // job.data 包含我們在 Webhook 裡丟進去的 { fileKey, fileName }
-    const { fileKey, fileName } = job.data;
+    const { fileKey, fileName, dbId } = job.data;
     
     // 執行轉檔
-    return await executeConversionTask(job, fileKey, fileName);
+    return await executeConversionTask(job, fileKey, fileName, dbId);
 
 }, {
     connection: redisConnection,
@@ -155,18 +178,34 @@ worker.on('completed', async (job, result) => {
             body: JSON.stringify({
                 fileKey: fileKey,
                 fileName: fileName,
-                status: 'success'
+                status: 'success',
+                size: result.totalSize.toString()
             })
         });
-    } catch (e) {
+    } catch (e:any) {
         console.error("❌ 無法通知 Server (Success):", e.message);
     }
 });
 // 失敗時通知
 worker.on('failed', async (job, err) => {
-    const { fileKey, fileName } = job.data;
+    if(!job) return;
+    const { fileKey, fileName, dbId } = job.data;
     console.error(`❌ [Worker] Job ${job.id} 失敗: ${err.message}`);
 
+    if(dbId){
+        try {
+            await prisma.model.update({
+                where:{id:dbId},
+                data:{
+                    status:'error',
+                    errorMessage:err.message
+                }
+            });
+            console.log(`📝 [DB] ${dbId} 狀態更新為 Error`);
+        }catch(dbErr:any){
+            console.error(`⚠️ [DB] ${dbId} 更新失敗狀態錯誤: ${dbErr.message}`);
+        }
+    }
     try {
         await fetch('http://localhost:3003/notify/done', {
             method: 'POST',
@@ -178,7 +217,7 @@ worker.on('failed', async (job, err) => {
                 message: err.message
             })
         });
-    } catch (e) {
+    } catch (e:any) {
         console.error("❌ 無法通知 Server (Error):", e.message);
     }
 });
@@ -189,7 +228,7 @@ app.use(cors());
 app.use(bodyParser.json());
 
 app.post('/webhook/convert', async(req, res) => {
-    const { fileKey, fileName } = req.body;
+    const { fileKey, fileName, dbId } = req.body;
     
     if (!fileKey || !fileName) {
         return res.status(400).send({ error: 'Missing fileKey or fileName' });
@@ -199,7 +238,8 @@ app.post('/webhook/convert', async(req, res) => {
     try {
         await conversionQueue.add('convert-job', { 
             fileKey, 
-            fileName 
+            fileName,
+            dbId
         },{
             jobId: fileKey, //強制把 Job ID 設定成跟 fileKey 一樣！
             // 設定自動清理 (重要!!!!!!)
@@ -213,7 +253,7 @@ app.post('/webhook/convert', async(req, res) => {
             }
         });
 
-        console.log(`📨 [Webhook] 已將 ${fileName} 加入佇列等待處理`);
+        console.log(`📨 [Webhook] 已將 ${fileName} 加入佇列等待處理(DB_ID: ${dbId})`);
         
         // 這裡回應 200，告訴 Tus Server "我收到了，正在排隊中"
         // 前端會顯示 "Converting..." (因為 Tus Server 尚未廣播 success)
