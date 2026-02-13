@@ -68,11 +68,12 @@ model Model {
 // prisma/schema/post.prisma
 
 model Post {
-  id       String @id @default(uuid())
-  shortId  String @unique
-  title    String
-  category String
-  type     String
+  id          String  @id @default(uuid())
+  shortId     String  @unique
+  title       String
+  category    String
+  description String?
+  type        String
 
   // PostgreSQL 的原生陣列功能
   keywords   String[]
@@ -83,11 +84,13 @@ model Post {
   modelId String
   model   Model  @relation(fields: [modelId], references: [id])
 
+  uploaderId String
+  uploader   User   @relation(fields: [uploaderId], references: [id])
+
   // 相關文章 ID (簡易關聯)
   relatedPosts String[]
 
   permission String
-  author     String
   team       String?
 
   createdAt DateTime @default(now())
@@ -127,7 +130,9 @@ model User {
   accounts Account[]
 
   // 一個使用者可以擁有多個模型
-  models    Model[]
+  models Model[]
+
+  posts     Post[]
   // 對應 timestamps: true
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

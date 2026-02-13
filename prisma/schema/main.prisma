@@ -1,18 +1,18 @@
 // prisma/schema/main.prisma
 
 generator client {
-    provider = "prisma-client-js"
-    output = "../generated/prisma"
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
 }
 
 datasource db {
-    provider = "postgresql"
+  provider = "postgresql"
 }
 
 // 共用的 Enum 建議放在這裡，或者跟隨主要使用的 Model
 enum ProcessStatus {
-    uploading
-    processing
-    completed
-    error
+  uploading
+  processing
+  completed
+  error
 }

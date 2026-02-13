@@ -6,10 +6,11 @@ import Viewer3D, { Viewer3DRef } from '@/components/viewer/Viewer3D';
 import PDFViewer from '@/components/viewer/PDFViewer';
 import { PDFViewerRef } from '@/components/viewer/PDFViewerInternal';
 import ModelUploadSidebar from '@/components/sidebar/ModelUploadSidebar';
-import MetadataForm, { Metadata } from '@/components/forms/MetadataForm';
+import MetadataForm, { Metadata, ImageFile } from '@/components/forms/MetadataForm';
 import { redirect } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { Model,UIModel } from '@/types/upload';
+import { create3DPost } from '@/lib/actions/post.action';
 
 // 定義檔案項目介面
 export interface FileItem {
@@ -17,9 +18,11 @@ export interface FileItem {
     file: File;
     type: '3d' | 'pdf';
     name: string;
+    fileid?:string;
 }
 
 const Upload = () => {
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [step, setStep] = useState(1);
     const [uploadedFiles, setUploadedFiles] = useState<FileItem[]>([]);
     const [selectedFile, setSelectedFile] = useState<FileItem | null>(null);
@@ -29,12 +32,12 @@ const Upload = () => {
         fileName: string | null;
         progress?:number;
     }>({ isIFCProcessing: false, fileName: null, progress: undefined });
-    const [additionalImages, setAdditionalImages] = useState<string[]>([]);
+    const [additionalImages, setAdditionalImages] = useState<ImageFile[]>([]);
     // MetadataForm的狀態由父層存取 方便提交跟狀態管理
     const [metadata, setMetadata] = useState<Metadata>({
         title: "",
         category: "",
-        keywords: "",
+        keywords: [],
         description: "",
         permission: "standard",
         team: "",
@@ -48,23 +51,53 @@ const Upload = () => {
     const handleIFCProcessingChange = useCallback((isIFCProcessing:boolean,fileName: string | null, progress?:number) => {
         setIFCProcessingStatus({isIFCProcessing,fileName,progress});
     }, []);
+    // 將 Blob URL 轉回 File 物件並上傳
+    const uploadImageToMinIO = async (blobUrl: string, filename: string = "image.png") => {
+        try {
+            // 1. fetch Blob URL 拿到 blob 資料
+            const response = await fetch(blobUrl);
+            const blob = await response.blob();
+            
+            // 2. 建立 File 物件
+            const file = new File([blob], filename, { type: blob.type });
 
+            // 3. 透過 FormData 上傳到 API Route
+            const formData = new FormData();
+            formData.append("file", file);
+
+            const uploadRes = await fetch("/api/images", {
+                method: "POST",
+                body: formData,
+            });
+
+            if (!uploadRes.ok) throw new Error("Image upload failed");
+            
+            const data = await uploadRes.json();
+            return data.key as string; // 回傳 MinIO Key
+
+        } catch (error) {
+            console.error("Upload helper error:", error);
+            return null;
+        }
+    };
     // 處理下一步按鈕
     const handleNextButton = async () => {
         if (step === 2) {
-            let screenshot = null;
+            let screenshotUrl: string | null = null;
             
             if (selectedFile?.type === 'pdf' && pdfRef.current) {
-                // 處理 PDF 截圖
-                screenshot = await pdfRef.current.takeScreenshot();
+                // 如果 PDFViewer 也是回傳 Base64，建議之後也可以改成 Blob
+                screenshotUrl = await pdfRef.current.takeScreenshot();
             } else if (viewerRef.current) {
-                // 處理 3D 模型截圖
-                screenshot = viewerRef.current.takeScreenshot();
+                // 🔥 修改這裡：加上 await
+                screenshotUrl = await viewerRef.current.takeScreenshot();
             }
 
-            if (screenshot) {
-                setCoverImage(screenshot);
-                console.log("封面擷取成功！");
+            if (screenshotUrl) {
+                // 這裡拿到的 screenshotUrl 現在是 "blob:http://localhost:3000/..."
+                // 短小精幹，不會塞爆記憶體
+                setCoverImage(screenshotUrl);
+                console.log("封面擷取成功！(Blob URL)");
             }
         }
         if (step === 3) {
@@ -77,6 +110,7 @@ const Upload = () => {
 
     // 處理最終建立邏輯
     const handleCreate = async () => {
+
         console.log("正在建立模型卡片...", {
             files: uploadedFiles,
             cover: coverImage,
@@ -84,10 +118,73 @@ const Upload = () => {
             metadata: metadata // 使用最新的 metadata 狀態
             // 這裡之後會從 MetadataForm 取得資料
         });
-        // 實作 API 呼叫
-        alert("模型卡片建立成功！(API 串接開發中)");
-        redirect('/');
-        
+
+        if (!selectedFile) {
+            alert("請選擇一個主要模型！");
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        try {
+            console.log("1. 開始上傳圖片...");
+            
+            // A. 上傳封面圖 (如果有)
+            let coverKey: string | null = null;
+            if (coverImage) {
+                coverKey = await uploadImageToMinIO(coverImage, "cover.png");
+            }
+
+            // B. 上傳額外圖片 (平行處理，加快速度)
+            const imageKeys: string[] = [];
+            const uploadPromises = additionalImages.map((img, index) => 
+                // 這裡傳入 img.preview (Blob URL) 或是 img.file (原始檔案) 都可以
+                // 既然我們已經存了 img.file，直接用 img.file 上傳最快，不用再 fetch blob
+                uploadFileDirectly(img.file) 
+            );
+
+            // 等待所有圖片上傳完成
+            const results = await Promise.all(uploadPromises);
+            results.forEach(key => {
+                if (key) imageKeys.push(key);
+            });
+
+            console.log("2. 圖片上傳完成，寫入資料庫...", { coverKey, imageKeys });
+
+            // C. 呼叫 Server Action 寫入 DB
+            const result = await create3DPost({
+                metadata: metadata,
+                coverImageKey: coverKey,
+                imageKeys: imageKeys,
+                modelId: selectedFile.id, // 使用者選中的模型 ID
+            });
+
+            if (result.success) {
+                console.log("✅ 建立成功！");
+                redirect('/'); // 或是跳轉到該 Post 頁面
+            } else {
+                throw new Error(result.error);
+            }
+
+        } catch (error) {
+            console.error("建立失敗:", error);
+            alert("建立失敗，請稍後再試");
+            setIsSubmitting(false);
+        }
+    };
+
+    // 直接上傳 File 物件 (給 additionalImages 用)
+    const uploadFileDirectly = async (file: File) => {
+        const formData = new FormData();
+        formData.append("file", file);
+        try {
+            const res = await fetch("/api/images", { method: "POST", body: formData });
+            if (res.ok) {
+                const data = await res.json();
+                return data.key as string;
+            }
+        } catch (e) { console.error(e); }
+        return null;
     };
 
     // 處理上一步按鈕
@@ -116,7 +213,7 @@ const Upload = () => {
                 <div className='absolute inset-0 pointer-events-none shadow-[inset_0px_0px_27.1px_0px_#000000] z-10'/>
                 <SidebarUpload 
                     currentStep={step}
-                    onNext={handleNextButton}
+                    onNext={isSubmitting ? ()=>Promise<void> : handleNextButton}
                     onBack={handleBackButton}
                 />
             </div>

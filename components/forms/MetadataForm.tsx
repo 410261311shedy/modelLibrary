@@ -1,16 +1,21 @@
 "use client";
 
-import React, { useState, useCallback, useRef } from 'react';
-import { Input, Select, SelectItem, Textarea, Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Slider } from "@heroui/react";
+import React, { useState, useCallback, useRef,useEffect } from 'react';
+import { Chip, Input, Select, SelectItem, Textarea, Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Slider } from "@heroui/react";
 import { Info, HelpCircle, FileUp, Inbox, X } from 'lucide-react';
 import Cropper from 'react-easy-crop'
 import getCroppedImg from '@/utils/cropImage';
 import Image from 'next/image';
 
+export interface ImageFile {
+  file: File;      // 原始檔案 (上傳用)
+  preview: string; // Blob URL (預覽顯示用)
+}
+
 export interface Metadata {
   title: string;
   category: string;
-  keywords: string;
+  keywords: string[];
   description: string;
   permission: string;
   team: string;
@@ -20,8 +25,8 @@ export interface Metadata {
 interface MetadataFormProps {
   coverImage: string | null;
   onCoverChange: (image: string | null) => void;
-  additionalImages: string[];
-  onAdditionalImagesChange: (images: string[]) => void;
+  additionalImages: ImageFile[];
+  onAdditionalImagesChange: (images: ImageFile[]) => void;
   metadata: Metadata;
   onMetadataChange: (data: Metadata) => void;
 }
@@ -35,6 +40,8 @@ const MetadataForm = ({
   onMetadataChange 
 }: MetadataFormProps) => {
 
+  // 控制 Keywords 輸入框的暫存文字
+  const [keywordInput, setKeywordInput] = useState("");
   // --- 裁切相關 State ---
   const [isCropOpen, setIsCropOpen] = useState<boolean>(false);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -45,6 +52,40 @@ const MetadataForm = ({
   const moreImagesInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
 
+  // 當元件卸載或圖片被移除時，釋放記憶體
+  useEffect(() => {
+    // 這裡我們只在元件完全卸載時做一次性清理 (Cleanup all)
+    // 如果要更細緻，可以在 handleRemoveImage 裡做單獨釋放
+    return () => {
+      additionalImages.forEach(img => URL.revokeObjectURL(img.preview));
+    };
+  }, []);
+
+  // 處理 Keywords 的 Enter 事件
+  const handleKeywordKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault(); // 防止觸發 Form Submit
+      
+      const trimmedInput = keywordInput.trim();
+      
+      // 確保不為空，且不重複 (選用，看你是否允許重複)
+      if (trimmedInput && !metadata.keywords.includes(trimmedInput)) {
+        onMetadataChange({
+          ...metadata,
+          keywords: [...metadata.keywords, trimmedInput]
+        });
+        setKeywordInput(""); // 清空輸入框
+      }
+    }
+  };
+  // 移除 Keyword
+  const handleRemoveKeyword = (keywordToRemove: string) => {
+    const newKeywords = metadata.keywords.filter(k => k !== keywordToRemove);
+    onMetadataChange({
+      ...metadata,
+      keywords: newKeywords
+    });
+  };
   // --- 裁切邏輯 ---
   const onCropComplete = useCallback((croppedArea: any, croppedAreaPixels: any) => {
     setCroppedAreaPixels(croppedAreaPixels);
@@ -89,19 +130,12 @@ const MetadataForm = ({
       alert('最多只能上傳 8 張額外圖片。');
       return;
     }
+    const newImages: ImageFile[] = validFiles.map(file => ({
+      file: file,
+      preview: URL.createObjectURL(file) // 生成 Blob URL
+    }));
 
-    Promise.all(
-      validFiles.map(file => {
-        return new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = (e) => resolve(e.target?.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
-      })
-    ).then(newImages => {
-      onAdditionalImagesChange([...additionalImages, ...newImages]);
-    });
+    onAdditionalImagesChange([...additionalImages, ...newImages]);
   };
 
   const handleMoreImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -114,9 +148,15 @@ const MetadataForm = ({
   const handleUploadClick = () => {
     moreImagesInputRef.current?.click();
   };
-
+  // 移除時順便釋放該張圖的記憶體
   const handleRemoveImage = (indexToRemove: number, e: React.MouseEvent) => {
     e.stopPropagation();
+    // 釋放記憶體
+    const imageToRemove = additionalImages[indexToRemove];
+    if (imageToRemove) {
+        URL.revokeObjectURL(imageToRemove.preview);
+    }
+
     const newImages = additionalImages.filter((_, index) => index !== indexToRemove);
     onAdditionalImagesChange(newImages);
   };
@@ -184,15 +224,39 @@ const MetadataForm = ({
       {/* Keywords */}
       <div className="space-y-2">
         <label className="text-white text-sm block">Keywords</label>
+        
+        {/* 輸入框 */}
         <Input
-          value={metadata.keywords}
-          onValueChange={(v) => handleTextChange('keywords', v)}
+          value={keywordInput}
+          onValueChange={setKeywordInput} // 這裡只更新暫存文字
+          onKeyDown={handleKeywordKeyDown} // 偵測 Enter
           aria-label='Keywords Input'
-          placeholder="Fill in some keywords that will help people find your model easily"
+          placeholder={metadata.keywords.length > 0 ? "Add more keywords..." : "Type and press Enter to add tags"}
           classNames={{
             inputWrapper: "bg-[#18181B] shadow-[inset_0px_3px_5px_1px_#000000A3,inset_0px_-1px_2px_#00000099,0px_3px_1.8px_#FFFFFF29,0px_-2px_1.9px_#00000040,0px_0px_4px_#FBFBFB3D]"
           }}
+          endContent={
+            <span className="text-xs text-gray-500">Enter to add</span>
+          }
         />
+
+        {/* 顯示 Keywords Tags (Chips) */}
+        <div className="flex flex-wrap gap-2 mt-2">
+          {metadata.keywords.map((keyword, index) => (
+            <Chip
+              key={index}
+              onClose={() => handleRemoveKeyword(keyword)}
+              variant="flat"
+              classNames={{
+                base: "bg-[#27272A] border border-white/10 hover:bg-[#3F3F46] transition-colors",
+                content: "text-white text-xs font-inter",
+                closeButton: "text-gray-400 hover:text-white"
+              }}
+            >
+              {keyword}
+            </Chip>
+          ))}
+        </div>
       </div>
 
       {/* Description */}
@@ -218,7 +282,6 @@ const MetadataForm = ({
           Images <HelpCircle size={16} className="text-gray-400" />
         </label>
         
-        {/* 🔥 修改這裡：加上 items-stretch 確保左右高度一致 */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           
           {/* 左側：Cover Image */}
@@ -249,7 +312,7 @@ const MetadataForm = ({
                       image={coverImage}
                       crop={crop}
                       zoom={zoom}
-                      aspect={16 / 9}
+                      aspect={16/12}
                       onCropChange={setCrop}
                       onCropComplete={onCropComplete}
                       onZoomChange={setZoom}
@@ -293,9 +356,9 @@ const MetadataForm = ({
             />
 
             <div className="grid grid-cols-4 gap-3 h-full">
-              {additionalImages.map((imgSrc, index) => (
+              {additionalImages.map((img, index) => (
                 <div key={index} className="relative aspect-square rounded-lg overflow-hidden group bg-black/40 border border-white/10">
-                  <Image src={imgSrc} alt={`Upload ${index}`} fill className="object-cover" unoptimized />
+                  <Image src={img.preview} alt={`Upload ${index}`} fill className="object-cover" unoptimized />
                   <button 
                     onClick={(e) => handleRemoveImage(index, e)}
                     className="absolute top-1 right-1 bg-black/60 hover:bg-red-500 text-white p-1 rounded-full transition-colors opacity-0 group-hover:opacity-100"
@@ -305,7 +368,7 @@ const MetadataForm = ({
                 </div>
               ))}
 
-              {/* 🔥 修改這裡：如果沒有圖片，佔滿全部(col-span-4)；如果有圖片，變回方塊(aspect-square) */}
+              {/* 如果沒有圖片，佔滿全部(col-span-4)；如果有圖片，變回方塊(aspect-square) */}
               {additionalImages.length < 8 && (
                 <div 
                   onClick={handleUploadClick}

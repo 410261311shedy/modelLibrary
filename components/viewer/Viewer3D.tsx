@@ -13,7 +13,7 @@ export interface Viewer3DRef {
     loadModel:(buffer:ArrayBuffer, modelName:string) => void;
     focusAllModel: () => void;
     focusModel: (modelId:string) => void;
-    takeScreenshot: () => string | null;
+    takeScreenshot: () => Promise<string | null>;
     exportModelFrag: (modelId: string) => Promise<ArrayBuffer | null>;
     deleteModel: (modelId: string) => void;
 }
@@ -87,15 +87,29 @@ const Viewer3D = forwardRef<Viewer3DRef, Viewer3DProps>(({ allFiles, file, onIFC
             }
         },
         //screen shot the model
-        takeScreenshot: () => {
+        takeScreenshot: async() => {
             if (!componentsRef.current) return null;
             const worlds = componentsRef.current.get(OBC.Worlds);
             const world = worlds.list.values().next().value;
             if (world && world.renderer) {
                 // 強制渲染一幀以確保截圖不是黑屏
                 const renderer = world.renderer as OBC.SimpleRenderer;
+                const canvas = renderer.three.domElement;
+
                 renderer.three.render(world.scene.three, world.camera.three);
-                return renderer.three.domElement.toDataURL('image/png');
+                
+                return new Promise<string | null>((resolve) => {
+                    canvas.toBlob((blob) => {
+                        if (blob) {
+                            // 🔥 這裡直接建立 Blob URL
+                            // 這只是一個指向記憶體的短字串，效能極佳
+                            const url = URL.createObjectURL(blob);
+                            resolve(url);
+                        } else {
+                            resolve(null);
+                        }
+                    }, 'image/png');
+                });
             }
             return null;
         },

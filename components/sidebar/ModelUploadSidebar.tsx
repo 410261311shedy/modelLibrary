@@ -37,13 +37,8 @@ import { useUpload } from "@/context/UploadContext";
 import { getUserModels, deleteModel } from '@/lib/actions/model.action';
 import { Model,UIModel } from '../../types/upload';
 import * as THREE from 'three';
+import { FileItem } from '@/app/(uploadAndDashboard)/upload/page';
 
-interface FileItem {
-  id: string;
-  file: File;
-  type: '3d' | 'pdf';
-  name: string;
-}
 
 interface ModelUploadSidebarProps {
   getComponents?:() => OBC.Components | null;
@@ -375,7 +370,20 @@ const ModelUploadSidebar = ({
             completedModels.map((fileItem) => (
               <div 
                 key={fileItem.id}
-                // onClick={() => onSelectFile(fileItem)}
+                onClick={() => {
+
+                  const isPdf = fileItem.name.toLowerCase().endsWith('.pdf');
+
+                  onSelectFile({
+                    id:fileItem.id,
+                    // 🔥 騙術：給它一個同名的空檔案 (內容是空陣列 [])
+                    file: new File([], fileItem.name, { type: 'application/octet-stream' }),
+                    type: isPdf ? 'pdf' : '3d',
+                    name:fileItem.name,
+                    fileid:fileItem.fileId,
+                  })
+                }
+              }
                 className={`group flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all ${
                   selectedFileId === fileItem.id 
                   ? 'bg-[#D70036] text-white shadow-lg' 
