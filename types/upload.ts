@@ -27,6 +27,3 @@ export interface UIModel extends Model {
   type: '3d' | 'pdf';
 }
 
-export interface UIModel extends Model {
-  type: '3d' | 'pdf';
-}

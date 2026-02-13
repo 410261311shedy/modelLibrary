@@ -25,7 +25,7 @@ import { useEffect, useState } from 'react';
 import MegaMenu from "../MegaMenu";
 import { useSession } from "next-auth/react";
 import { signOut } from 'next-auth/react';
-import { LogOut, Upload, UserRoundPen } from "lucide-react";
+import { LogIn, LogOut, Upload, UserRoundPen } from "lucide-react";
 
 const getLogoSrc = (isDark: boolean) => {
   return isDark ? "/icons/logowhite.svg" : "/icons/Logo.svg";
@@ -145,9 +145,8 @@ export default function Navbarhead() {
               color="primary"
               size="md"
               radius="md"
-              className="shadow-[0px_0px_2px_0px_#000000B2,inset_0px_4px_-4px_0px_#00000040,inset_0px_4px_2px_0px_#FFFFFF33]"
-            >Login</Button>)}
-            
+              className="shadow-[0px_0px_2px_0px_#000000B2,inset_0px_-4px_4px_0px_#00000040,inset_0px_4px_2px_0px_#FFFFFF33]"
+            ><LogIn size={20}/>Login</Button>)}
             {/*  */}
           </NavbarContent>
         </Navbar>

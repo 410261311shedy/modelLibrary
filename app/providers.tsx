@@ -4,11 +4,13 @@
 import { UploadProvider } from '@/context/UploadContext';
 import { FloatingProgress } from '@/components/FloatingProgress';
 import { HeroUIProvider, ToastProvider } from '@heroui/react';
+import { useRouter } from 'next/navigation';
 import React from 'react';
 
 export function Providers({ children }: { children: React.ReactNode }) {
+    const router = useRouter();
     return (
-        <HeroUIProvider>
+        <HeroUIProvider navigate={router.push}>
             <ToastProvider placement='top-right'/>
             <UploadProvider>
                 <div>

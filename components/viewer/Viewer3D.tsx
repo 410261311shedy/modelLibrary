@@ -9,6 +9,8 @@ import { FileItem } from '@/app/(uploadAndDashboard)/upload/page';
 import * as THREE from 'three';
 
 export interface Viewer3DRef {
+    getComponents: () => OBC.Components | null;
+    loadModel:(buffer:ArrayBuffer, modelName:string) => void;
     focusAllModel: () => void;
     focusModel: (modelId:string) => void;
     takeScreenshot: () => string | null;
@@ -25,9 +27,26 @@ interface Viewer3DProps {
 const Viewer3D = forwardRef<Viewer3DRef, Viewer3DProps>(({ allFiles, file, onIFCProcessingChange }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const componentsRef = useRef<OBC.Components | null>(null);
+    const fragmentsRef = useRef<OBC.FragmentsManager | null>(null);
+    const [loadedModelsCount, setLoadingModelsCount] = useState<number>(0);
 
-    
     useImperativeHandle(ref, () => ({
+        getComponents: () => componentsRef.current,
+        loadModel: async(buffer,modelName) => {
+            if(!componentsRef.current) return;
+            const fragments = componentsRef.current.get(OBC.FragmentsManager);
+            fragmentsRef.current = fragments;
+            const modelId = modelName;
+             // Dispose existing model if it has the same ID
+            if (fragments.list.has(modelId)) {
+                console.error(`Viewer3D already have ${modelId} model in Scene`);
+                return;
+            }
+            const fragModel = await fragments.core.load(buffer, { modelId });
+            console.warn(fragments.list);
+            // fragments.list.set(modelId, fragModel);
+            setLoadingModelsCount(fragments.list.size);
+        },
         focusAllModel: async() => {
             if (!componentsRef.current) return;
             const worlds = componentsRef.current.get(OBC.Worlds);
@@ -112,10 +131,8 @@ const Viewer3D = forwardRef<Viewer3DRef, Viewer3DProps>(({ allFiles, file, onIFC
             const model = fragments.list.get(modelId);
 
             if(model){
-                //release the memory
+                //release the memory and remove from the scene and list
                 model.dispose();
-                //remove from FragmentsManager's list
-                fragments.list.delete(modelId);
                 console.log(`模型${modelId} 已從場景與記憶體中完全移除`);
             }
         },
@@ -149,7 +166,7 @@ const Viewer3D = forwardRef<Viewer3DRef, Viewer3DProps>(({ allFiles, file, onIFC
             if (componentsRef.current) {
                 componentsRef.current.dispose();
                 componentsRef.current = null;
-                console.warn("component unmounted")
+                console.warn("Viewer Component unmounted")
             }
         };
     }, []);
@@ -211,7 +228,7 @@ const Viewer3D = forwardRef<Viewer3DRef, Viewer3DProps>(({ allFiles, file, onIFC
                 ref={containerRef} 
                 className='w-full h-full rounded-lg overflow-hidden'
             />
-            {!file && (
+            { loadedModelsCount === 0 && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
                     <p className="text-gray-500 bg-black/20 px-4 py-2 rounded-lg backdrop-blur-sm">
                         請從左側上傳並選取 IFC 或 FRAG 模型

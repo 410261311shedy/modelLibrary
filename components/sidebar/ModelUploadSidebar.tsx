@@ -1,7 +1,21 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Button,Tooltip,Spinner } from "@heroui/react";
+import { 
+  Button,
+  Tooltip,
+  Spinner, 
+  Dropdown,
+  DropdownTrigger, 
+  DropdownMenu, 
+  DropdownItem,
+  Modal, 
+  ModalContent, 
+  ModalHeader, 
+  ModalBody, 
+  ModalFooter,
+  useDisclosure 
+} from "@heroui/react";
 import { 
   PanelLeftClose, 
   PanelLeftOpen,
@@ -13,12 +27,16 @@ import {
   Focus,
   Trash2,
   CloudDownload,
-  RefreshCw
+  RefreshCw,
+  Loader2,
+  ChevronRight,
+  BrushCleaning
 } from 'lucide-react';
 import * as OBC from "@thatopen/components"
 import { useUpload } from "@/context/UploadContext";
-import { getUserModels } from '@/lib/actions/model.action';
+import { getUserModels, deleteModel } from '@/lib/actions/model.action';
 import { Model,UIModel } from '../../types/upload';
+import * as THREE from 'three';
 
 interface FileItem {
   id: string;
@@ -28,8 +46,10 @@ interface FileItem {
 }
 
 interface ModelUploadSidebarProps {
+  getComponents?:() => OBC.Components | null;
   onFilesChange: (files: FileItem[]) => void;
   onSelectFile: (file: FileItem | null) => void;
+  onLoadModel: (buffer: ArrayBuffer,modelName:string) => void;
   onFocusAllModel: () => void;
   onFocusModel:(modelId:string) => void;
   onExportModelFrag: (modelId: string) => Promise<ArrayBuffer | null>;
@@ -38,8 +58,10 @@ interface ModelUploadSidebarProps {
 }
 
 const ModelUploadSidebar = ({ 
+  getComponents,
   onFilesChange, 
   onSelectFile,
+  onLoadModel,
   onFocusAllModel,
   onFocusModel, 
   onDeleteModel,
@@ -51,10 +73,14 @@ const ModelUploadSidebar = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [completedModels, setCompletedModels] = useState<UIModel[]>([]);
-
+  // 用來追蹤哪一個模型正在下載中 (顯示轉圈圈)
+  const [loadingModelId, setLoadingModelId] = useState<string | null>(null);
   //從 Context 取得 uppy 實例
   const { uppy } = useUpload();
-  // 撈取資料
+  const {isOpen, onOpen, onOpenChange} = useDisclosure();// 控制 Modal 開關的 Hook
+  const [modelToDelete, setModelToDelete] = useState<string | null>(null);//暫存「當前要刪除的模型Name」
+  const [modelIdToDelete, setModelIdToDelete] = useState<string | null>(null);//暫存「當前要刪除的模型id」
+  // 撈取model資料
   const fetchUserModels = async () => {
     setIsLoading(true);
     try {
@@ -136,20 +162,91 @@ const ModelUploadSidebar = ({
       onSelectFile(newFiles[0]);
     }
   };
+  // 當使用者按下垃圾桶時：只做「紀錄 ID」跟「打開 Modal」
+  const openDeleteModal = (name: string,id:string) => {
+    setModelToDelete(name); // 記住要刪誰
+    setModelIdToDelete(id);
+    onOpen(); // 打開確認視窗
+  };
+  // 使用者在 Modal 按下「確認」時：真正執行刪除
+  const handleConfirmDelete = async () => {
+    if (!modelToDelete || !modelIdToDelete) return;
+    onOpenChange();
+    removeModelFromScene(modelToDelete);
+    deleteModelFromStorage(modelToDelete,modelIdToDelete);
+  }
+
+  const downloadAndLoadFrag = async(fileId:string, modelName:string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if(loadingModelId) return;
+
+    try{
+      setLoadingModelId(modelName);
+      console.warn(fileId);
+      const response = await fetch(`/api/frags/${fileId}`);
+
+      if (!response.ok) {
+        throw new Error("下載失敗");
+      }
+
+      const buffer = await response.arrayBuffer();
+
+      console.log(`📦 模型下載成功: ${modelName}, 大小: ${buffer.byteLength}`);
+
+      onLoadModel(buffer, modelName);
+    }catch(error){
+      console.error("載入失敗:", error);
+    }finally{
+      setLoadingModelId(null);
+    }
+  }
 
   const focusModel = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
 
-    const fileItem = files.find(f => f.id === id);
+    if(getComponents){
+      const components = getComponents();
+      if(components){
+        const fragments = components.get(OBC.FragmentsManager);
+        const model = fragments.list.get(id);
 
-    if(fileItem && onFocusModel){
-      const modelId = fileItem.name.replace(/\.(ifc|frag)$/i, "");
-      onFocusModel(modelId);
+        if(model){
+          const worlds = components.get(OBC.Worlds);
+          const world = worlds.list.values().next().value;
+
+          if(world && world.camera.controls){
+            
+            model.object.updateMatrixWorld(true);
+            // 確保模型物件的矩陣與包圍盒已更新不然聚焦空盒會黑屏
+            const box = new THREE.Box3().setFromObject(model.object);
+            if (box.isEmpty()) {
+              console.warn(`模型 ${id} 的包圍盒為空，延遲 100ms 後重試`);
+              return;
+            }
+
+            world.camera.controls?.fitToBox(model.object,true);       
+            console.log(`聚焦至模型: ${id}`);
+          }
+        }else {
+            console.warn(`找不到模型 ${id} 無法聚焦`);
+        }
+      }
     }
-    
+    // onFocusModel(id);
 
   }
-  
+  const removeModelFromScene = (modelName:string) => {
+    onDeleteModel(modelName);
+  }
+  const deleteModelFromStorage = async(modelName:string,fileId:string) => {
+    // 先從場景中移除
+    onDeleteModel(modelName);
+
+    deleteModel(fileId);
+
+    fetchUserModels();
+
+  }
   // 移除檔案以及模型
   const removeFile = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -285,44 +382,110 @@ const ModelUploadSidebar = ({
                   : 'bg-[#27272A] text-gray-300 hover:bg-[#3F3F46]'
                 }`}
               >
-                {fileItem.type === '3d' ? <Box width={20} height={20} /> : <FileText size={20} />}
+                {fileItem.type === '3d' ? <Box width={20} height={20} className='shrink-0'/> : <FileText size={20} />}
                 <Tooltip content={`${fileItem.name}`} placement='bottom'>
                   <span className="text-sm truncate flex-grow">                    
                       {fileItem.name}
                   </span>
                 </Tooltip>
-                <Tooltip content={`Show in Viewer`} placement='bottom'>
-                  <button
-                    onClick={(e) => focusModel(fileItem.id, e)}
-                    aria-label={`Focus ${fileItem.name}`}
-                    className={`${fileItem.type === 'pdf' ? "hidden":null} text-gray-300 hover:text-white`}
-                    >
-                    <CloudDownload size={16}/>
-                  </button>
-                </Tooltip>
-                <Tooltip content={`Focus`} placement='bottom'>
-                  <button
-                    onClick={(e) => focusModel(fileItem.id, e)}
-                    aria-label={`Focus ${fileItem.name}`}
-                    className={`${fileItem.type === 'pdf' ? "hidden":null} text-gray-300 hover:text-white`}
-                    >
-                    <Focus size={16}/>
-                  </button>
-                </Tooltip>
-                <Tooltip content={`Remove`} placement='bottom'>
-                  <button
-                    onClick={(e) => removeFile(fileItem.id, e)}
-                    aria-label={`Remove ${fileItem.name}`}
-                    className="text-gray-300 hover:text-white"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </Tooltip>
+                {fileItem.name === loadingModelId ? (<Loader2 size={16}/>)
+                :( 
+                  <>
+                    <Tooltip content={`Show in Viewer`} placement='bottom'>
+                      <button
+                        onClick={(e) => downloadAndLoadFrag(fileItem.fileId,fileItem.name, e)}
+                        aria-label={`Load ${fileItem.name}`}
+                        className={`${fileItem.type === 'pdf' ? "hidden":null} text-gray-300 hover:text-white`}
+                        >
+                        <CloudDownload size={16}/>
+                      </button>
+                    </Tooltip>
+                    <Tooltip content={`Focus`} placement='bottom'>
+                      <button
+                        onClick={(e) => focusModel(fileItem.name, e)}
+                        aria-label={`Focus ${fileItem.name}`}
+                        className={`${fileItem.type === 'pdf' ? "hidden":null} text-gray-300 hover:text-white`}
+                        >
+                        <Focus size={16}/>
+                      </button>
+                    </Tooltip>
+                      <Dropdown
+                        placement='right-start'
+                      >
+                        <DropdownTrigger>
+                          <div className='flex'>
+                            <Tooltip content="More Options" placement="bottom">
+                              <button>
+                                <ChevronRight size={16} className="shrink-0" />
+                              </button>
+                            </Tooltip>
+                          </div>
+                        </DropdownTrigger>  
+                        <DropdownMenu 
+                          aria-label='more options' 
+                          variant='flat'
+                          itemClasses={{
+                            base:"text-black dark:text-white",
+                          }}
+                        >
+                          <DropdownItem 
+                            key="Remove From Scene" 
+                            onPress={() => removeModelFromScene(fileItem.name)} 
+                            endContent={<BrushCleaning size={20}/>}
+                          >
+                            Remove From Scene
+                          </DropdownItem>
+                          <DropdownItem 
+                            key="Delete From Storage" 
+                            onPress={() => openDeleteModal(fileItem.name,fileItem.fileId)} 
+                            endContent={<Trash2 size={20} className='text-danger'/>}
+                            color="danger"
+                            classNames={{
+                              title:"text-danger",
+                            }}
+                          >
+                            Delete From Storage
+                          </DropdownItem>
+                        </DropdownMenu>
+                      </Dropdown>
+                  </>
+                )  
+                }
               </div>
             ))
           )}
         </div>
       </div>
+      {/* 二次確認刪除模型 */}
+      <Modal 
+        isOpen={isOpen} 
+        onOpenChange={onOpenChange}
+        className="dark text-white bg-[#18181B] border border-[#27272A]"
+        backdrop="blur"
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">Confirm Deletion</ModalHeader>
+              <ModalBody>
+                <p className="text-gray-400">
+                  Are you sure you want to delete this model? 
+                  <br/>
+                  This action cannot be undone and will remove the file from the database and cloud storage.
+                </p>
+              </ModalBody>
+              <ModalFooter>
+                <Button color="default" variant="light" onPress={onClose}>
+                  Cancel
+                </Button>
+                <Button color="danger" onPress={handleConfirmDelete}>
+                  Delete
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </div>
   );
 };

@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { Input, Select, SelectItem, Textarea, Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Slider } from "@heroui/react";
-import { Upload, Info, HelpCircle, FileUp, Inbox } from 'lucide-react';
+import { Info, HelpCircle, FileUp, Inbox, X } from 'lucide-react';
 import Cropper from 'react-easy-crop'
 import getCroppedImg from '@/utils/cropImage';
 import Image from 'next/image';
@@ -20,16 +20,32 @@ export interface Metadata {
 interface MetadataFormProps {
   coverImage: string | null;
   onCoverChange: (image: string | null) => void;
+  additionalImages: string[];
+  onAdditionalImagesChange: (images: string[]) => void;
   metadata: Metadata;
   onMetadataChange: (data: Metadata) => void;
 }
 
-const MetadataForm = ({ coverImage, onCoverChange, metadata, onMetadataChange }: MetadataFormProps) => {
+const MetadataForm = ({ 
+  coverImage, 
+  onCoverChange, 
+  additionalImages = [], 
+  onAdditionalImagesChange,
+  metadata, 
+  onMetadataChange 
+}: MetadataFormProps) => {
+
+  // --- 裁切相關 State ---
   const [isCropOpen, setIsCropOpen] = useState<boolean>(false);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
 
+  // --- 上傳相關 Ref 與 State ---
+  const moreImagesInputRef = useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  // --- 裁切邏輯 ---
   const onCropComplete = useCallback((croppedArea: any, croppedAreaPixels: any) => {
     setCroppedAreaPixels(croppedAreaPixels);
   }, []);
@@ -38,23 +54,89 @@ const MetadataForm = ({ coverImage, onCoverChange, metadata, onMetadataChange }:
     if (coverImage && croppedAreaPixels) {
       try {
         const croppedImage = await getCroppedImg(coverImage, croppedAreaPixels);
-        onCoverChange(croppedImage); // 使用 onCoverChange 更新父層圖片
-        setIsCropOpen(false); // 關閉 Modal
-        setZoom(1); // 重置縮放
+        onCoverChange(croppedImage);
+        setIsCropOpen(false);
+        setZoom(1);
       } catch (e) {
         console.error(e);
       }
     }
   };
 
+  // --- Metadata 變更邏輯 ---
   const handleTextChange = (key: keyof Metadata, value: string) => {
     onMetadataChange({ ...metadata, [key]: value });
   };
 
   const handleSelectionChange = (key: keyof Metadata, keys: any) => {
-    // NextUI 的 onSelectionChange 回傳的是 Set
     const value = Array.from(keys)[0] as string;
     onMetadataChange({ ...metadata, [key]: value || "" });
+  };
+
+  // --- 右側圖片上傳邏輯 ---
+  const processFiles = (files: FileList) => {
+    const validFiles = Array.from(files).filter(file => {
+      const isValidType = file.type.startsWith('image/');
+      const isValidSize = file.size <= 10 * 1024 * 1024;
+      return isValidType && isValidSize;
+    });
+
+    if (validFiles.length !== files.length) {
+      alert('部分檔案格式不符或超過 10MB，已略過。');
+    }
+
+    if (validFiles.length + additionalImages.length > 8) {
+      alert('最多只能上傳 8 張額外圖片。');
+      return;
+    }
+
+    Promise.all(
+      validFiles.map(file => {
+        return new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target?.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      })
+    ).then(newImages => {
+      onAdditionalImagesChange([...additionalImages, ...newImages]);
+    });
+  };
+
+  const handleMoreImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      processFiles(e.target.files);
+    }
+    e.target.value = ''; 
+  };
+
+  const handleUploadClick = () => {
+    moreImagesInputRef.current?.click();
+  };
+
+  const handleRemoveImage = (indexToRemove: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const newImages = additionalImages.filter((_, index) => index !== indexToRemove);
+    onAdditionalImagesChange(newImages);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      processFiles(e.dataTransfer.files);
+    }
   };
 
   return (
@@ -135,19 +217,28 @@ const MetadataForm = ({ coverImage, onCoverChange, metadata, onMetadataChange }:
         <label className="text-white text-sm flex items-center gap-2">
           Images <HelpCircle size={16} className="text-gray-400" />
         </label>
+        
+        {/* 🔥 修改這裡：加上 items-stretch 確保左右高度一致 */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* 顯示擷取的封面圖 */}
-          {coverImage && (
-            <div className="relative aspect-video rounded-xl group overflow-hidden shadow-[inset_0px_3px_5px_1px_#000000A3,inset_0px_-1px_2px_#00000099,0px_3px_1.8px_#FFFFFF29,0px_-2px_1.9px_#00000040,0px_0px_4px_#FBFBFB3D]"
+          
+          {/* 左側：Cover Image */}
+          <div className="relative aspect-video rounded-xl group overflow-hidden shadow-[inset_0px_3px_5px_1px_#000000A3,inset_0px_-1px_2px_#00000099,0px_3px_1.8px_#FFFFFF29,0px_-2px_1.9px_#00000040,0px_0px_4px_#FBFBFB3D]"
               onClick={() => setIsCropOpen(true)}>
-              <Image src={coverImage} alt='Cover' height={100} width={100} className='w-full h-full object-cover' />
-              {/* <img src={coverImage} alt="Cover" className="w-full h-full object-cover" /> */}
-              <div className="absolute top-2 left-2 bg-[#D70036] text-white text-[10px] px-2 py-1 rounded">COVER</div>
-              <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
-                <span className="text-white font-medium">點擊裁切圖片</span>
+            {coverImage ? (
+              <>
+                <Image src={coverImage} alt='Cover' fill className='object-cover' unoptimized />
+                <div className="absolute top-2 left-2 bg-[#D70036] text-white text-[10px] px-2 py-1 rounded z-10">COVER</div>
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity z-20">
+                  <span className="text-white font-medium">點擊裁切</span>
+                </div>
+              </>
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-gray-500 text-xs">
+                No Cover Image
               </div>
-            </div>
-          )}
+            )}
+          </div>
+
           <Modal isOpen={isCropOpen} onClose={() => setIsCropOpen(false)} size="2xl">
             <ModalContent className='bg-[#18181B] text-white'>
               <ModalHeader>裁切封面圖片</ModalHeader>
@@ -158,7 +249,7 @@ const MetadataForm = ({ coverImage, onCoverChange, metadata, onMetadataChange }:
                       image={coverImage}
                       crop={crop}
                       zoom={zoom}
-                      aspect={1} // 固定 16:9 比例
+                      aspect={16 / 9}
                       onCropChange={setCrop}
                       onCropComplete={onCropComplete}
                       onZoomChange={setZoom}
@@ -188,11 +279,64 @@ const MetadataForm = ({ coverImage, onCoverChange, metadata, onMetadataChange }:
               </ModalFooter>
             </ModalContent>
           </Modal>
-          {/* 上傳更多圖片區域 */}
-          <div className="col-span-2  rounded-xl p-8 flex flex-col items-center justify-center gap-2 cursor-pointer bg-[#18181B] shadow-[inset_0px_3px_5px_1px_#000000A3,inset_0px_-1px_2px_#00000099,0px_3px_1.8px_#FFFFFF29,0px_-2px_1.9px_#00000040,0px_0px_4px_#FBFBFB3D]">
-            <FileUp size={32} className="text-gray-400" />
-            <p className="text-white text-xs">Drop some images here or <span className="text-[#D70036]">browse</span></p>
-            <p className="text-gray-500 text-[10px]">JPG/JPEG/PNG format, max 10M, max 8 images</p>
+
+          {/* 右側：上傳更多圖片 */}
+          <div className="col-span-2 h-full rounded-xl bg-[#18181B] shadow-[inset_0px_3px_5px_1px_#000000A3,inset_0px_-1px_2px_#00000099,0px_3px_1.8px_#FFFFFF29,0px_-2px_1.9px_#00000040,0px_0px_4px_#FBFBFB3D] p-3 overflow-y-auto">
+            
+            <input 
+              type="file" 
+              ref={moreImagesInputRef} 
+              onChange={handleMoreImagesChange} 
+              accept="image/png, image/jpeg, image/jpg"
+              multiple 
+              className="hidden" 
+            />
+
+            <div className="grid grid-cols-4 gap-3 h-full">
+              {additionalImages.map((imgSrc, index) => (
+                <div key={index} className="relative aspect-square rounded-lg overflow-hidden group bg-black/40 border border-white/10">
+                  <Image src={imgSrc} alt={`Upload ${index}`} fill className="object-cover" unoptimized />
+                  <button 
+                    onClick={(e) => handleRemoveImage(index, e)}
+                    className="absolute top-1 right-1 bg-black/60 hover:bg-red-500 text-white p-1 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              ))}
+
+              {/* 🔥 修改這裡：如果沒有圖片，佔滿全部(col-span-4)；如果有圖片，變回方塊(aspect-square) */}
+              {additionalImages.length < 8 && (
+                <div 
+                  onClick={handleUploadClick}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  className={`
+                    rounded-lg border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all
+                    ${isDragging 
+                      ? 'border-[#D70036] bg-[#27272A]' 
+                      : 'border-white/10 hover:border-white/30 hover:bg-white/5'
+                    }
+                    ${additionalImages.length === 0 
+                      ? 'col-span-4 h-full w-full' // 沒照片時：填滿容器
+                      : 'aspect-square'            // 有照片時：變成方塊
+                    } 
+                  `}
+                >
+                  <FileUp size={additionalImages.length === 0 ? 32 : 20} className={isDragging ? 'text-[#D70036]' : 'text-gray-400'} />
+                  
+                  {additionalImages.length === 0 ? (
+                    <div className="text-center mt-2">
+                      <p className="text-white text-xs">Drop images here or <span className="text-[#D70036]">browse</span></p>
+                      <p className="text-gray-500 text-[10px] mt-1">Max 8 images</p>
+                    </div>
+                  ) : (
+                    <span className="text-[10px] text-gray-400 mt-1">Add +</span>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

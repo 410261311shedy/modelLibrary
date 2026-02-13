@@ -29,7 +29,7 @@ const Upload = () => {
         fileName: string | null;
         progress?:number;
     }>({ isIFCProcessing: false, fileName: null, progress: undefined });
-
+    const [additionalImages, setAdditionalImages] = useState<string[]>([]);
     // MetadataForm的狀態由父層存取 方便提交跟狀態管理
     const [metadata, setMetadata] = useState<Metadata>({
         title: "",
@@ -80,6 +80,7 @@ const Upload = () => {
         console.log("正在建立模型卡片...", {
             files: uploadedFiles,
             cover: coverImage,
+            additionalImages: additionalImages,
             metadata: metadata // 使用最新的 metadata 狀態
             // 這裡之後會從 MetadataForm 取得資料
         });
@@ -137,9 +138,11 @@ const Upload = () => {
                         </div>
                         <div className={`absolute left-2 top-[5%] h-[90%] ${(step === 2 || step === 3 )? "hidden":"block"}`}>
                                     <ModelUploadSidebar 
+                                        getComponents={() => viewerRef.current?.getComponents() || null}
                                         onFilesChange={setUploadedFiles}
                                         onSelectFile={setSelectedFile}
                                         selectedFileId={selectedFile?.id || null}
+                                        onLoadModel={(buffer,modelName)=>viewerRef.current?.loadModel(buffer,modelName)}
                                         onFocusAllModel={()=>viewerRef.current?.focusAllModel()}
                                         onFocusModel={(modelId) => viewerRef.current?.focusModel(modelId)}
                                         onExportModelFrag={async (modelId) => {
@@ -171,6 +174,8 @@ const Upload = () => {
                                     <MetadataForm
                                         coverImage={coverImage}
                                         onCoverChange={setCoverImage}
+                                        additionalImages={additionalImages}
+                                        onAdditionalImagesChange={setAdditionalImages}
                                         metadata={metadata}
                                         onMetadataChange={setMetadata}
                                     />
